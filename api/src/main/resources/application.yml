@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: osborne-api
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/osborne
+    username: admin
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: 8080
+
+jwt:
+  secret: 19af8adfa65e9253c7de359d87292817eb0af4ddb2d01ae3fe1e5be7874bc7f
+  expiration: 900000
+  refresh-expiration: 604800000
