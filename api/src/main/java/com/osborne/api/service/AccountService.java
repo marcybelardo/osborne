@@ -34,7 +34,7 @@ public class AccountService {
 	    .getName();
 	User currentUser = userService.getUserByEmail(email);
 
-	return accountRepository.findByOwnerId(currentUser.getId());
+	return accountRepository.findAccountsByUsersId(currentUser.getId());
     }
 
     @Transactional(readOnly = true)

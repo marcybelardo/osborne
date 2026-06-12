@@ -15,3 +15,8 @@ docker compose down
 #tear down and wipe database
 docker compose down -v
 ```
+
+### Running locally
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+```

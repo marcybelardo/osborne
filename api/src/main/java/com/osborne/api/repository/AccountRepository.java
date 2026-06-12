@@ -11,6 +11,6 @@ import com.osborne.api.model.Account;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, UUID> {
 
-    List<Account> findByOwnerId(UUID ownerId);
+    List<Account> findAccountsByUsersId(UUID userId);
 
 }

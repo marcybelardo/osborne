@@ -30,6 +30,9 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: 900000
+      JWT_REFRESH_EXPIRATION: 604800000
     ports:
       - "8080:8080"
 
@@ -40,7 +43,10 @@ services:
     depends_on:
       - api
     ports:
-      - "80:80"
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      VITE_API_URL: http://api:8080
 
 volumes:
   postgres_data:
