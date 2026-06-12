@@ -1,0 +1,116 @@
+# ============================================================
+#  Java / Spring Boot
+# ============================================================
+
+# Compiled output
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Gradle (if applicable)
+.gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Spring Boot
+spring-shell.log
+*.log
+logs/
+
+# Application secrets — never commit these
+**/application-local.properties
+**/application-local.yml
+**/application-secrets.properties
+**/application-secrets.yml
+
+
+# ============================================================
+#  Vite / React Frontend
+# ============================================================
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Vite cache
+.vite/
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Coverage reports
+coverage/
+
+
+# ============================================================
+#  IDEs & Editors
+# ============================================================
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+
+# Eclipse
+.classpath
+.project
+.settings/
+.factorypath
+
+# NetBeans
+nbproject/
+nbactions.xml
+
+
+# ============================================================
+#  OS & System Files
+# ============================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+
+# ============================================================
+#  Misc
+# ============================================================
+
+# Docker override files with local secrets
+docker-compose.override.yml
+
+# Terraform (if used for infra)
+*.tfstate
+*.tfstate.backup
+.terraform/
