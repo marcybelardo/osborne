@@ -1,6 +1,5 @@
 package com.osborne.api.dto;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 import com.osborne.api.enums.AccountType;

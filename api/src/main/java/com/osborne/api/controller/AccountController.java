@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.osborne.api.dto.CreateAccountRequest;
-import com.osborne.api.dto.UpdateAccountRequest;
+import com.osborne.api.dto.*;
 import com.osborne.api.model.Account;
 import com.osborne.api.service.AccountService;
 
