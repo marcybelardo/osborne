@@ -26,10 +26,10 @@ import lombok.Setter;
 @Builder
 public class User extends BaseEntity {
 
-    @NotBlank(message = "Username is required")
+    @NotBlank(message = "display name is required")
     @Size(max = 100)
-    @Column(name = "username", nullable = false)
-    private String username;
+    @Column(name = "display_name", nullable = false)
+    private String displayName;
 
     @Email(message = "Invalid email format")
     @NotBlank(message = "Email is required")

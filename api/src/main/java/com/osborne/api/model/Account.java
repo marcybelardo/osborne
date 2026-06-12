@@ -2,6 +2,7 @@ package com.osborne.api.model;
 
 import java.util.List;
 import java.util.Set;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -43,6 +44,10 @@ public class Account extends BaseEntity {
     @Column(length = 3, nullable = false)
     @Builder.Default
     private String currency = "USD";
+
+    @Column(updatable = false, nullable = false, precision = 19, scale = 2)
+    @Builder.Default
+    private BigDecimal initialBalance = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
