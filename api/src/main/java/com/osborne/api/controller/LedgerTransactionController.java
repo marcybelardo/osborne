@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.osborne.api.dto.CreateLedgerTransactionRequest;
+import com.osborne.api.dto.LedgerTransactionResponse;
 import com.osborne.api.dto.UpdateLedgerTransactionRequest;
-import com.osborne.api.model.LedgerTransaction;
 import com.osborne.api.service.LedgerTransactionService;
 
 import jakarta.validation.Valid;
@@ -31,21 +31,21 @@ public class LedgerTransactionController {
     private final LedgerTransactionService ledgerTransactionService;
 
     @GetMapping
-    public ResponseEntity<Page<LedgerTransaction>> getTransactions(
+    public ResponseEntity<Page<LedgerTransactionResponse>> getTransactions(
             @PathVariable UUID accountId,
             Pageable pageable) {
         return ResponseEntity.ok(ledgerTransactionService.getTransactionsForAccount(accountId, pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LedgerTransaction> getTransaction(
+    public ResponseEntity<LedgerTransactionResponse> getTransaction(
             @PathVariable UUID accountId,
             @PathVariable UUID id) {
         return ResponseEntity.ok(ledgerTransactionService.getTransactionById(accountId, id));
     }
 
     @PostMapping
-    public ResponseEntity<LedgerTransaction> createTransaction(
+    public ResponseEntity<LedgerTransactionResponse> createTransaction(
             @PathVariable UUID accountId,
             @Valid @RequestBody CreateLedgerTransactionRequest request) {
         return new ResponseEntity<>(
@@ -54,7 +54,7 @@ public class LedgerTransactionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<LedgerTransaction> updateTransaction(
+    public ResponseEntity<LedgerTransactionResponse> updateTransaction(
             @PathVariable UUID accountId,
             @PathVariable UUID id,
             @RequestBody UpdateLedgerTransactionRequest request) {

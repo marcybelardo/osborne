@@ -8,6 +8,9 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+cors:
+  allowed-origins: http://localhost:5173,http://localhost:3000
+
 jwt:
   secret: change-me-in-production
   expiration: 900000

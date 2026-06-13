@@ -2,6 +2,7 @@ package com.osborne.api.config;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -37,6 +38,9 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
+    @Value("${cors.allowed-origins}")
+    private List<String> allowedOrigins;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
 	throws Exception {
@@ -47,6 +51,8 @@ public class SecurityConfig {
 	    .authorizeHttpRequests(auth ->
 		auth
 		    .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh")
+		    .permitAll()
+		    .requestMatchers("/api/health")
 		    .permitAll()
 		    .requestMatchers("/api/auth/**")
 		    .authenticated()
@@ -99,7 +105,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 	CorsConfiguration configuration = new CorsConfiguration();
-	configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+	configuration.setAllowedOrigins(allowedOrigins);
 	configuration.setAllowedMethods(
 	    List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
 	);

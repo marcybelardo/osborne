@@ -11,6 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -53,6 +54,39 @@ public class GlobalExceptionHandler {
 	response.put("details", ex.getMessage());
 
 	return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex) {
+	Map<String, Object> response = new HashMap<>();
+	response.put("timestamp", LocalDateTime.now());
+	response.put("status", HttpStatus.CONFLICT.value());
+	response.put("error", "Conflict");
+	response.put("details", ex.getMessage());
+
+	return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException ex) {
+	Map<String, Object> response = new HashMap<>();
+	response.put("timestamp", LocalDateTime.now());
+	response.put("status", ex.getStatusCode().value());
+	response.put("error", HttpStatus.valueOf(ex.getStatusCode().value()).getReasonPhrase());
+	response.put("details", ex.getReason());
+
+	return new ResponseEntity<>(response, ex.getStatusCode());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
+	Map<String, Object> response = new HashMap<>();
+	response.put("timestamp", LocalDateTime.now());
+	response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+	response.put("error", "Internal Server Error");
+	response.put("details", "An unexpected error occurred");
+
+	return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }

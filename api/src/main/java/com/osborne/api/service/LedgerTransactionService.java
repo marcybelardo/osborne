@@ -1,5 +1,6 @@
 package com.osborne.api.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -10,8 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.osborne.api.dto.CreateLedgerTransactionRequest;
+import com.osborne.api.dto.LedgerTransactionResponse;
 import com.osborne.api.dto.UpdateLedgerTransactionRequest;
 import com.osborne.api.model.Account;
+import com.osborne.api.model.Budget;
 import com.osborne.api.model.LedgerTransaction;
 import com.osborne.api.model.User;
 import com.osborne.api.repository.AccountRepository;
@@ -29,13 +32,14 @@ public class LedgerTransactionService {
     private final UserService userService;
 
     @Transactional(readOnly = true)
-    public Page<LedgerTransaction> getTransactionsForAccount(UUID accountId, Pageable pageable) {
+    public Page<LedgerTransactionResponse> getTransactionsForAccount(UUID accountId, Pageable pageable) {
         Account account = getAccountAndVerifyAccess(accountId);
-        return ledgerTransactionRepository.findByAccount(account, pageable);
+        return ledgerTransactionRepository.findByAccount(account, pageable)
+            .map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
-    public LedgerTransaction getTransactionById(UUID accountId, UUID transactionId) {
+    public LedgerTransactionResponse getTransactionById(UUID accountId, UUID transactionId) {
         getAccountAndVerifyAccess(accountId);
         LedgerTransaction transaction = ledgerTransactionRepository.findById(transactionId)
             .orElseThrow(() -> new EntityNotFoundException("Transaction not found with id: " + transactionId));
@@ -44,23 +48,27 @@ public class LedgerTransactionService {
             throw new EntityNotFoundException("Transaction not found with id: " + transactionId);
         }
 
-        return transaction;
+        return toResponse(transaction);
     }
 
     @Transactional
-    public LedgerTransaction createTransaction(UUID accountId, CreateLedgerTransactionRequest request) {
+    public LedgerTransactionResponse createTransaction(UUID accountId, CreateLedgerTransactionRequest request) {
         Account account = getAccountAndVerifyAccess(accountId);
 
         LedgerTransaction transaction = LedgerTransaction.builder()
             .amount(request.amount())
+            .description(request.description())
+            .category(request.category())
+            .transactionDate(request.transactionDate() != null ? request.transactionDate() : java.time.LocalDate.now())
             .account(account)
             .build();
 
-        return ledgerTransactionRepository.save(transaction);
+        LedgerTransaction saved = ledgerTransactionRepository.save(transaction);
+        return toResponse(saved);
     }
 
     @Transactional
-    public LedgerTransaction updateTransaction(
+    public LedgerTransactionResponse updateTransaction(
             UUID accountId, UUID transactionId, UpdateLedgerTransactionRequest request) {
         getAccountAndVerifyAccess(accountId);
         LedgerTransaction transaction = ledgerTransactionRepository.findById(transactionId)
@@ -73,8 +81,18 @@ public class LedgerTransactionService {
         if (request.amount() != null) {
             transaction.setAmount(request.amount());
         }
+        if (request.description() != null) {
+            transaction.setDescription(request.description());
+        }
+        if (request.category() != null) {
+            transaction.setCategory(request.category());
+        }
+        if (request.transactionDate() != null) {
+            transaction.setTransactionDate(request.transactionDate());
+        }
 
-        return ledgerTransactionRepository.save(transaction);
+        LedgerTransaction saved = ledgerTransactionRepository.save(transaction);
+        return toResponse(saved);
     }
 
     @Transactional
@@ -106,4 +124,23 @@ public class LedgerTransactionService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userService.getUserByEmail(email);
     }
+
+    private LedgerTransactionResponse toResponse(LedgerTransaction transaction) {
+        List<UUID> budgetIds = transaction.getBudgets().stream()
+            .map(Budget::getId)
+            .toList();
+
+        return new LedgerTransactionResponse(
+            transaction.getId(),
+            transaction.getAmount(),
+            transaction.getDescription(),
+            transaction.getCategory(),
+            transaction.getTransactionDate(),
+            transaction.getAccount().getId(),
+            budgetIds,
+            transaction.getCreatedAt(),
+            transaction.getUpdatedAt()
+        );
+    }
+
 }

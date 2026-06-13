@@ -1,6 +1,7 @@
 package com.osborne.api.controller;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,10 +18,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.osborne.api.config.SecurityConfig;
+import com.osborne.api.dto.AccountResponse;
 import com.osborne.api.dto.CreateAccountRequest;
 import com.osborne.api.dto.UpdateAccountRequest;
 import com.osborne.api.enums.AccountType;
-import com.osborne.api.model.Account;
 import com.osborne.api.security.JwtUtil;
 import com.osborne.api.service.AccountService;
 
@@ -32,6 +33,7 @@ import jakarta.persistence.EntityNotFoundException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -54,15 +56,18 @@ class AccountControllerTest {
     @MockitoBean
     private UserDetailsService userDetailsService;
 
-    private Account buildAccount(String name) {
-        Account account = Account.builder()
-            .name(name)
-            .type(AccountType.CASH)
-            .currency("USD")
-            .initialBalance(BigDecimal.valueOf(1000))
-            .build();
-        account.setId(UUID.randomUUID());
-        return account;
+    private AccountResponse buildAccountResponse(String name) {
+        return new AccountResponse(
+            UUID.randomUUID(),
+            name,
+            AccountType.CASH,
+            "USD",
+            BigDecimal.valueOf(1000),
+            BigDecimal.valueOf(1000),
+            List.of(UUID.randomUUID()),
+            LocalDateTime.now(),
+            LocalDateTime.now()
+        );
     }
 
     @Nested
@@ -71,7 +76,7 @@ class AccountControllerTest {
         @Test
         @WithMockUser
         void shouldReturnPaginatedAccounts() throws Exception {
-            var account = buildAccount("Checking");
+            var account = buildAccountResponse("Checking");
             var page = new PageImpl<>(List.of(account), PageRequest.of(0, 20), 1);
             when(accountService.getAccountsForCurrentUser(any())).thenReturn(page);
 
@@ -86,7 +91,7 @@ class AccountControllerTest {
         @Test
         @WithMockUser
         void shouldReturnEmptyPage() throws Exception {
-            var page = new PageImpl<Account>(List.of(), PageRequest.of(0, 20), 0);
+            var page = new PageImpl<AccountResponse>(List.of(), PageRequest.of(0, 20), 0);
             when(accountService.getAccountsForCurrentUser(any())).thenReturn(page);
 
             mockMvc.perform(get("/api/accounts"))
@@ -108,13 +113,14 @@ class AccountControllerTest {
         @Test
         @WithMockUser
         void shouldReturnAccountById() throws Exception {
-            var account = buildAccount("Savings");
-            when(accountService.getAccountById(account.getId())).thenReturn(account);
+            var account = buildAccountResponse("Savings");
+            when(accountService.getAccountById(account.id())).thenReturn(account);
 
-            mockMvc.perform(get("/api/accounts/" + account.getId()))
+            mockMvc.perform(get("/api/accounts/" + account.id()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Savings"))
-                .andExpect(jsonPath("$.type").value("CASH"));
+                .andExpect(jsonPath("$.type").value("CASH"))
+                .andExpect(jsonPath("$.currentBalance").value(1000));
         }
 
         @Test
@@ -153,7 +159,7 @@ class AccountControllerTest {
         @Test
         @WithMockUser
         void shouldCreateAccount() throws Exception {
-            var account = buildAccount("New Account");
+            var account = buildAccountResponse("New Account");
             when(accountService.createAccount(any(CreateAccountRequest.class))).thenReturn(account);
 
             mockMvc.perform(post("/api/accounts")
@@ -162,19 +168,18 @@ class AccountControllerTest {
                         {"name":"New Account","type":"CASH","currency":"USD","initialBalance":1000}"""))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("New Account"))
-                .andExpect(jsonPath("$.type").value("CASH"));
+                .andExpect(jsonPath("$.type").value("CASH"))
+                .andExpect(jsonPath("$.currentBalance").value(1000));
         }
 
         @Test
         @WithMockUser
         void shouldCreateAccountWithDefaults() throws Exception {
-            var account = Account.builder()
-                .name("Minimal")
-                .type(AccountType.EXPENSE)
-                .currency("USD")
-                .initialBalance(BigDecimal.ZERO)
-                .build();
-            account.setId(UUID.randomUUID());
+            var account = new AccountResponse(
+                UUID.randomUUID(), "Minimal", AccountType.EXPENSE, "USD",
+                BigDecimal.ZERO, BigDecimal.ZERO, List.of(),
+                LocalDateTime.now(), LocalDateTime.now()
+            );
             when(accountService.createAccount(any(CreateAccountRequest.class))).thenReturn(account);
 
             mockMvc.perform(post("/api/accounts")
@@ -222,12 +227,15 @@ class AccountControllerTest {
         @Test
         @WithMockUser
         void shouldUpdateAccountFields() throws Exception {
-            var account = buildAccount("Updated");
-            account.setType(AccountType.CREDIT_CARD);
-            when(accountService.updateAccount(eq(account.getId()), any(UpdateAccountRequest.class)))
+            var account = new AccountResponse(
+                UUID.randomUUID(), "Updated", AccountType.CREDIT_CARD, "USD",
+                BigDecimal.valueOf(1000), BigDecimal.valueOf(1000), List.of(),
+                LocalDateTime.now(), LocalDateTime.now()
+            );
+            when(accountService.updateAccount(eq(account.id()), any(UpdateAccountRequest.class)))
                 .thenReturn(account);
 
-            mockMvc.perform(put("/api/accounts/" + account.getId())
+            mockMvc.perform(put("/api/accounts/" + account.id())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""
                         {"name":"Updated","type":"CREDIT_CARD"}"""))
@@ -269,6 +277,25 @@ class AccountControllerTest {
             mockMvc.perform(put("/api/accounts/" + UUID.randomUUID())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{}"))
+                .andExpect(status().isUnauthorized());
+        }
+    }
+
+    @Nested
+    class DeleteAccount {
+
+        @Test
+        @WithMockUser
+        void shouldDeleteAccount() throws Exception {
+            var id = UUID.randomUUID();
+
+            mockMvc.perform(delete("/api/accounts/" + id))
+                .andExpect(status().isNoContent());
+        }
+
+        @Test
+        void shouldRejectUnauthenticated() throws Exception {
+            mockMvc.perform(delete("/api/accounts/" + UUID.randomUUID()))
                 .andExpect(status().isUnauthorized());
         }
     }

@@ -1,0 +1,7 @@
+allow:
+- tool: file_write
+  args:
+    path: api/src/main/java/com/osborne/api/dto/AddAccountUserRequest.java
+- tool: file_write
+  args:
+    path: api/src/main/java/com/osborne/api/dto/AddBudgetTransactionRequest.java

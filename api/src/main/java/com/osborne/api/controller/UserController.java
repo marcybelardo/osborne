@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.osborne.api.dto.UserResponse;
 import com.osborne.api.model.User;
 import com.osborne.api.dto.CreateUserRequest;
 import com.osborne.api.service.UserService;
@@ -23,14 +24,14 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody CreateUserRequest request) {
+    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
 	User savedUser = userService.createUser(request);
-	return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
+	return new ResponseEntity<>(userService.toResponse(savedUser), HttpStatus.CREATED);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<User> getCurrentUser() {
-	return ResponseEntity.ok(userService.getCurrentUser());
+    public ResponseEntity<UserResponse> getCurrentUser() {
+	return ResponseEntity.ok(userService.toResponse(userService.getCurrentUser()));
     }
 
 }

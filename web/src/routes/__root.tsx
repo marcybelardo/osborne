@@ -1,67 +1,47 @@
-import {
-  HeadContent,
-  Scripts,
-  createRootRouteWithContext,
-} from '@tanstack/react-router'
+import { Outlet, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
-import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
+import '../styles.css'
 
-import appCss from '../styles.css?url'
-
-import type { QueryClient } from '@tanstack/react-query'
-
-interface MyRouterContext {
-  queryClient: QueryClient
-}
-
-export const Route = createRootRouteWithContext<MyRouterContext>()({
-  head: () => ({
-    meta: [
-      {
-        charSet: 'utf-8',
-      },
-      {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
-      },
-      {
-        title: 'TanStack Start Starter',
-      },
-    ],
-    links: [
-      {
-        rel: 'stylesheet',
-        href: appCss,
-      },
-    ],
-  }),
-  shellComponent: RootDocument,
+export const Route = createRootRoute({
+  component: RootComponent,
 })
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function Header() {
   return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-            TanStackQueryDevtools,
-          ]}
-        />
-        <Scripts />
-      </body>
-    </html>
+    <header className="border-b border-gray-200 bg-white">
+      <div className="mx-auto max-w-4xl px-4 py-3">
+        <span className="text-lg font-semibold text-gray-900">Osborne</span>
+      </div>
+    </header>
+  )
+}
+
+function Footer() {
+  return (
+    <footer className="border-t border-gray-200 bg-white">
+      <div className="mx-auto max-w-4xl px-4 py-3 text-center text-sm text-gray-500">
+        Osborne
+      </div>
+    </footer>
+  )
+}
+
+function RootComponent() {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1">
+        <Outlet />
+      </main>
+      <Footer />
+      <TanStackDevtools
+        config={{ position: 'bottom-right' }}
+        plugins={[
+          { name: 'TanStack Router', render: <TanStackRouterDevtoolsPanel /> },
+        ]}
+      />
+    </div>
   )
 }

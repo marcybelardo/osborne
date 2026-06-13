@@ -1,6 +1,8 @@
 package com.osborne.api.controller;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,7 +21,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.osborne.api.config.SecurityConfig;
-import com.osborne.api.model.LedgerTransaction;
+import com.osborne.api.dto.LedgerTransactionResponse;
 import com.osborne.api.security.JwtUtil;
 import com.osborne.api.service.LedgerTransactionService;
 
@@ -54,10 +56,18 @@ class LedgerTransactionControllerTest {
 
     private final UUID accountId = UUID.randomUUID();
 
-    private LedgerTransaction buildTransaction() {
-        return LedgerTransaction.builder()
-            .amount(BigDecimal.valueOf(-50))
-            .build();
+    private LedgerTransactionResponse buildTransactionResponse() {
+        return new LedgerTransactionResponse(
+            UUID.randomUUID(),
+            BigDecimal.valueOf(-50),
+            "Grocery shopping",
+            "Groceries",
+            LocalDate.now(),
+            accountId,
+            List.of(),
+            LocalDateTime.now(),
+            LocalDateTime.now()
+        );
     }
 
     @Nested
@@ -66,8 +76,7 @@ class LedgerTransactionControllerTest {
         @Test
         @WithMockUser
         void shouldReturnPaginatedTransactions() throws Exception {
-            var tx = buildTransaction();
-            tx.setId(UUID.randomUUID());
+            var tx = buildTransactionResponse();
             var page = new PageImpl<>(List.of(tx), PageRequest.of(0, 20), 1);
             when(ledgerTransactionService.getTransactionsForAccount(eq(accountId), any()))
                 .thenReturn(page);
@@ -75,6 +84,8 @@ class LedgerTransactionControllerTest {
             mockMvc.perform(get("/api/accounts/" + accountId + "/transactions"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].amount").value(-50))
+                .andExpect(jsonPath("$.content[0].description").value("Grocery shopping"))
+                .andExpect(jsonPath("$.content[0].category").value("Groceries"))
                 .andExpect(jsonPath("$.totalElements").value(1));
         }
 
@@ -91,14 +102,13 @@ class LedgerTransactionControllerTest {
         @Test
         @WithMockUser
         void shouldReturnTransactionById() throws Exception {
-            var tx = buildTransaction();
-            var txId = UUID.randomUUID();
-            tx.setId(txId);
-            when(ledgerTransactionService.getTransactionById(accountId, txId)).thenReturn(tx);
+            var tx = buildTransactionResponse();
+            when(ledgerTransactionService.getTransactionById(accountId, tx.id())).thenReturn(tx);
 
-            mockMvc.perform(get("/api/accounts/" + accountId + "/transactions/" + txId))
+            mockMvc.perform(get("/api/accounts/" + accountId + "/transactions/" + tx.id()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.amount").value(-50));
+                .andExpect(jsonPath("$.amount").value(-50))
+                .andExpect(jsonPath("$.description").value("Grocery shopping"));
         }
 
         @Test
@@ -125,15 +135,17 @@ class LedgerTransactionControllerTest {
         @Test
         @WithMockUser
         void shouldCreateTransaction() throws Exception {
-            var tx = buildTransaction();
-            tx.setId(UUID.randomUUID());
+            var tx = buildTransactionResponse();
             when(ledgerTransactionService.createTransaction(eq(accountId), any())).thenReturn(tx);
 
             mockMvc.perform(post("/api/accounts/" + accountId + "/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"amount\":-50}"))
+                    .content("""
+                        {"amount":-50,"description":"Grocery shopping","category":"Groceries"}"""))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.amount").value(-50));
+                .andExpect(jsonPath("$.amount").value(-50))
+                .andExpect(jsonPath("$.description").value("Grocery shopping"))
+                .andExpect(jsonPath("$.category").value("Groceries"));
         }
 
         @Test
@@ -160,18 +172,22 @@ class LedgerTransactionControllerTest {
         @Test
         @WithMockUser
         void shouldUpdateTransactionAmount() throws Exception {
-            var tx = buildTransaction();
-            var txId = UUID.randomUUID();
-            tx.setAmount(BigDecimal.valueOf(-100));
-            tx.setId(txId);
-            when(ledgerTransactionService.updateTransaction(eq(accountId), eq(txId), any()))
+            var tx = new LedgerTransactionResponse(
+                UUID.randomUUID(), BigDecimal.valueOf(-100),
+                "Updated desc", "Bills", LocalDate.now(),
+                accountId, List.of(),
+                LocalDateTime.now(), LocalDateTime.now()
+            );
+            when(ledgerTransactionService.updateTransaction(eq(accountId), eq(tx.id()), any()))
                 .thenReturn(tx);
 
-            mockMvc.perform(put("/api/accounts/" + accountId + "/transactions/" + txId)
+            mockMvc.perform(put("/api/accounts/" + accountId + "/transactions/" + tx.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"amount\":-100}"))
+                    .content("""
+                        {"amount":-100,"description":"Updated desc"}"""))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.amount").value(-100));
+                .andExpect(jsonPath("$.amount").value(-100))
+                .andExpect(jsonPath("$.description").value("Updated desc"));
         }
 
         @Test

@@ -1,5 +1,6 @@
 package com.osborne.api.controller;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Nested;
@@ -12,6 +13,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.osborne.api.config.SecurityConfig;
+import com.osborne.api.dto.UserResponse;
 import com.osborne.api.model.User;
 import com.osborne.api.security.JwtUtil;
 import com.osborne.api.service.UserService;
@@ -42,14 +44,13 @@ class UserControllerTest {
     @MockitoBean
     private UserDetailsService userDetailsService;
 
-    private User buildUser() {
-        User user = User.builder()
-            .displayName("Test User")
-            .email("user@example.com")
-            .passwordHash("hashed-password")
-            .build();
-        user.setId(UUID.randomUUID());
-        return user;
+    private UserResponse buildUserResponse() {
+        return new UserResponse(
+            UUID.randomUUID(),
+            "Test User",
+            "user@example.com",
+            LocalDateTime.now()
+        );
     }
 
     @Nested
@@ -58,8 +59,9 @@ class UserControllerTest {
         @Test
         @WithMockUser
         void shouldCreateUser() throws Exception {
-            var user = buildUser();
-            when(userService.createUser(any())).thenReturn(user);
+            var response = buildUserResponse();
+            when(userService.createUser(any())).thenReturn(User.builder().build());
+            when(userService.toResponse(any(User.class))).thenReturn(response);
 
             mockMvc.perform(post("/api/users")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -68,7 +70,7 @@ class UserControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.displayName").value("Test User"))
                 .andExpect(jsonPath("$.email").value("user@example.com"))
-                .andExpect(jsonPath("$.id").value(user.getId().toString()));
+                .andExpect(jsonPath("$.id").value(response.id().toString()));
         }
 
         @Test
@@ -107,14 +109,15 @@ class UserControllerTest {
         @Test
         @WithMockUser
         void shouldReturnCurrentUser() throws Exception {
-            var user = buildUser();
-            when(userService.getCurrentUser()).thenReturn(user);
+            var response = buildUserResponse();
+            when(userService.getCurrentUser()).thenReturn(User.builder().build());
+            when(userService.toResponse(any(User.class))).thenReturn(response);
 
             mockMvc.perform(get("/api/users/me"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.displayName").value("Test User"))
                 .andExpect(jsonPath("$.email").value("user@example.com"))
-                .andExpect(jsonPath("$.id").value(user.getId().toString()));
+                .andExpect(jsonPath("$.id").value(response.id().toString()));
         }
 
         @Test

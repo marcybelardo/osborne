@@ -1,6 +1,7 @@
 package com.osborne.api.controller;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,7 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.osborne.api.config.SecurityConfig;
-import com.osborne.api.model.Budget;
+import com.osborne.api.dto.BudgetResponse;
 import com.osborne.api.security.JwtUtil;
 import com.osborne.api.service.BudgetService;
 
@@ -52,10 +53,16 @@ class BudgetControllerTest {
     @MockitoBean
     private UserDetailsService userDetailsService;
 
-    private Budget buildBudget() {
-        return Budget.builder()
-            .amount(BigDecimal.valueOf(500))
-            .build();
+    private BudgetResponse buildBudgetResponse() {
+        return new BudgetResponse(
+            UUID.randomUUID(),
+            BigDecimal.valueOf(500),
+            BigDecimal.ZERO,
+            UUID.randomUUID(),
+            List.of(),
+            LocalDateTime.now(),
+            LocalDateTime.now()
+        );
     }
 
     @Nested
@@ -64,14 +71,14 @@ class BudgetControllerTest {
         @Test
         @WithMockUser
         void shouldReturnPaginatedBudgets() throws Exception {
-            var budget = buildBudget();
-            budget.setId(UUID.randomUUID());
+            var budget = buildBudgetResponse();
             var page = new PageImpl<>(List.of(budget), PageRequest.of(0, 20), 1);
             when(budgetService.getBudgetsForCurrentUser(any())).thenReturn(page);
 
             mockMvc.perform(get("/api/budgets"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].amount").value(500))
+                .andExpect(jsonPath("$.content[0].currentSpending").value(0))
                 .andExpect(jsonPath("$.totalElements").value(1));
         }
 
@@ -88,14 +95,13 @@ class BudgetControllerTest {
         @Test
         @WithMockUser
         void shouldReturnBudgetById() throws Exception {
-            var budget = buildBudget();
-            var id = UUID.randomUUID();
-            budget.setId(id);
-            when(budgetService.getBudgetById(id)).thenReturn(budget);
+            var budget = buildBudgetResponse();
+            when(budgetService.getBudgetById(budget.id())).thenReturn(budget);
 
-            mockMvc.perform(get("/api/budgets/" + id))
+            mockMvc.perform(get("/api/budgets/" + budget.id()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.amount").value(500));
+                .andExpect(jsonPath("$.amount").value(500))
+                .andExpect(jsonPath("$.currentSpending").value(0));
         }
 
         @Test
@@ -122,15 +128,15 @@ class BudgetControllerTest {
         @Test
         @WithMockUser
         void shouldCreateBudget() throws Exception {
-            var budget = buildBudget();
-            budget.setId(UUID.randomUUID());
+            var budget = buildBudgetResponse();
             when(budgetService.createBudget(any())).thenReturn(budget);
 
             mockMvc.perform(post("/api/budgets")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{\"amount\":500}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.amount").value(500));
+                .andExpect(jsonPath("$.amount").value(500))
+                .andExpect(jsonPath("$.currentSpending").value(0));
         }
 
         @Test
@@ -166,13 +172,14 @@ class BudgetControllerTest {
         @Test
         @WithMockUser
         void shouldUpdateBudgetAmount() throws Exception {
-            var budget = buildBudget();
-            var id = UUID.randomUUID();
-            budget.setAmount(BigDecimal.valueOf(1000));
-            budget.setId(id);
-            when(budgetService.updateBudget(eq(id), any())).thenReturn(budget);
+            var budget = new BudgetResponse(
+                UUID.randomUUID(), BigDecimal.valueOf(1000), BigDecimal.ZERO,
+                UUID.randomUUID(), List.of(),
+                LocalDateTime.now(), LocalDateTime.now()
+            );
+            when(budgetService.updateBudget(eq(budget.id()), any())).thenReturn(budget);
 
-            mockMvc.perform(put("/api/budgets/" + id)
+            mockMvc.perform(put("/api/budgets/" + budget.id())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{\"amount\":1000}"))
                 .andExpect(status().isOk())
