@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -45,8 +46,10 @@ public class SecurityConfig {
 
 	    .authorizeHttpRequests(auth ->
 		auth
-		    .requestMatchers("/api/auth/**")
+		    .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh")
 		    .permitAll()
+		    .requestMatchers("/api/auth/**")
+		    .authenticated()
 		    .anyRequest()
 		    .authenticated()
 	    )
@@ -100,7 +103,9 @@ public class SecurityConfig {
 	configuration.setAllowedMethods(
 	    List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
 	);
-	configuration.setAllowedHeaders(List.of("*"));
+	configuration.setAllowedHeaders(
+	    List.of("Authorization", "Content-Type", "Accept")
+	);
 	configuration.setAllowCredentials(true);
 
 	UrlBasedCorsConfigurationSource source =

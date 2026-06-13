@@ -1,8 +1,8 @@
 package com.osborne.api.service;
 
-import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,8 +30,11 @@ public class UserService {
 	return userRepository.save(user);
     }
 
-    public List<User> getAllUsers() {
-	return userRepository.findAll();
+    public User getCurrentUser() {
+	String email = SecurityContextHolder.getContext()
+	    .getAuthentication()
+	    .getName();
+	return getUserByEmail(email);
     }
 
     public User getUserById(UUID id) {

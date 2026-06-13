@@ -1,11 +1,12 @@
 package com.osborne.api.service;
 
-import java.util.List;
 import java.util.Set;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -28,13 +29,13 @@ public class AccountService {
     private final UserService userService;
 
     @Transactional(readOnly = true)
-    public List<Account> getAccountsForCurrentUser() {
+    public Page<Account> getAccountsForCurrentUser(Pageable pageable) {
 	String email = SecurityContextHolder.getContext()
 	    .getAuthentication()
 	    .getName();
 	User currentUser = userService.getUserByEmail(email);
 
-	return accountRepository.findAccountsByUsersId(currentUser.getId());
+	return accountRepository.findAccountsByUsersId(currentUser.getId(), pageable);
     }
 
     @Transactional(readOnly = true)
@@ -59,14 +60,17 @@ public class AccountService {
 
     @Transactional
     public Account createAccount(CreateAccountRequest request) {
-	User initialManager = userService.getUserById(request.userId());
+	String email = SecurityContextHolder.getContext()
+	    .getAuthentication()
+	    .getName();
+	User currentUser = userService.getUserByEmail(email);
 
 	Account account = Account.builder()
 	    .name(request.name())
 	    .type(request.type())
 	    .currency(request.currency() != null ? request.currency() : "USD")
 	    .initialBalance(request.initialBalance() != null ? request.initialBalance() : BigDecimal.ZERO)
-	    .users(new HashSet<>(Set.of(initialManager)))
+	    .users(new HashSet<>(Set.of(currentUser)))
 	    .build();
 
 	return accountRepository.save(account);
@@ -74,11 +78,20 @@ public class AccountService {
 
     @Transactional
     public Account updateAccount(UUID id, UpdateAccountRequest request) {
+	String email = SecurityContextHolder.getContext()
+	    .getAuthentication()
+	    .getName();
+	User currentUser = userService.getUserByEmail(email);
+
 	Account account = accountRepository
 	    .findById(id)
 	    .orElseThrow(() ->
-		new RuntimeException("Account not found with id: " + id)
+		new EntityNotFoundException("Account not found with id: " + id)
 	    );
+
+	if (!account.getUsers().contains(currentUser)) {
+	    throw new AccessDeniedException("User does not manage this account");
+	}
 
 	if (request.name() != null) {
 	    account.setName(request.name());
@@ -90,20 +103,15 @@ public class AccountService {
 	    account.setCurrency(request.currency());
 	}
 	if (request.userId() != null) {
-	    String email = SecurityContextHolder.getContext()
-		.getAuthentication()
-		.getName();
-	    User currentUser = userService.getUserByEmail(email);
+	    User targetUser = userService.getUserById(request.userId());
 
 	    Set<User> accountUsers = account.getUsers();
 
-	    // `add` returns false if list is unchanged, in other words,
-	    // if user is present we don't need to add, but must remove
-	    if (!accountUsers.add(currentUser)) {
+	    if (!accountUsers.add(targetUser)) {
 		if (accountUsers.size() <= 1) {
 		    throw new IllegalStateException("Account must have at least one manager");
 		}
-		account.getUsers().remove(currentUser);
+		accountUsers.remove(targetUser);
 	    }
 	}
 

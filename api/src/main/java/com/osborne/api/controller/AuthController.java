@@ -2,8 +2,7 @@ package com.osborne.api.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+
+import jakarta.validation.Valid;
 
 import com.osborne.api.dto.AuthResponse;
 import com.osborne.api.dto.LoginRequest;
@@ -31,7 +32,6 @@ public class AuthController {
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final AuthenticationManager authenticationManager;
 
     private AuthResponse buildAuthResponse(User user) {
 	var userDetails = userDetailsService.loadUserByUsername(user.getEmail());
@@ -46,7 +46,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(
-	@RequestBody RegisterRequest request
+	@Valid @RequestBody RegisterRequest request
     ) {
 	if (userRepository.existsByEmail(request.email())) {
 	    throw new ResponseStatusException(
@@ -68,12 +68,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
-	@RequestBody LoginRequest request
+	@Valid @RequestBody LoginRequest request
     ) {
-	authenticationManager.authenticate(
-	    new UsernamePasswordAuthenticationToken(request.email(), request.password())
-	);
-
 	var user = userRepository
 	    .findByEmail(request.email())
 	    .orElseThrow(() ->
@@ -83,12 +79,19 @@ public class AuthController {
 		)
 	    );
 
+	if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+	    throw new ResponseStatusException(
+		HttpStatus.UNAUTHORIZED,
+		"Invalid credentials"
+	    );
+	}
+
 	return ResponseEntity.ok(buildAuthResponse(user));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(
-	@RequestBody RefreshTokenRequest request
+	@Valid @RequestBody RefreshTokenRequest request
     ) {
 	var refreshToken = request.refreshToken();
 	var userEmail = jwtUtil.extractUsername(refreshToken);
@@ -126,6 +129,27 @@ public class AuthController {
 	}
 
 	return ResponseEntity.ok(buildAuthResponse(user));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+	String email = SecurityContextHolder.getContext()
+	    .getAuthentication()
+	    .getName();
+
+	var user = userRepository
+	    .findByEmail(email)
+	    .orElseThrow(() ->
+		new ResponseStatusException(
+		    HttpStatus.UNAUTHORIZED,
+		    "User not found"
+		)
+	    );
+
+	user.setRefreshToken(null);
+	userRepository.save(user);
+
+	return ResponseEntity.noContent().build();
     }
 
 }

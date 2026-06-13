@@ -1,7 +1,5 @@
 package com.osborne.api.controller;
 
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,9 +28,9 @@ public class UserController {
 	return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
     }
 
-    @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-	    return ResponseEntity.ok(userService.getAllUsers());
+    @GetMapping("/me")
+    public ResponseEntity<User> getCurrentUser() {
+	return ResponseEntity.ok(userService.getCurrentUser());
     }
 
 }

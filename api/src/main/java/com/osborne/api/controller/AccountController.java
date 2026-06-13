@@ -1,8 +1,9 @@
 package com.osborne.api.controller;
 
-import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,8 +29,8 @@ public class AccountController {
     private final AccountService accountService;
 
     @GetMapping
-    public ResponseEntity<List<Account>> getAccounts() {
-	return ResponseEntity.ok(accountService.getAccountsForCurrentUser());
+    public ResponseEntity<Page<Account>> getAccounts(Pageable pageable) {
+	return ResponseEntity.ok(accountService.getAccountsForCurrentUser(pageable));
     }
 
     @GetMapping("/{id}")
