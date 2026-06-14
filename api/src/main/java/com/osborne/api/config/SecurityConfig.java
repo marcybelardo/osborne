@@ -37,6 +37,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    private final RequestIdFilter requestIdFilter;
 
     @Value("${cors.allowed-origins}")
     private List<String> allowedOrigins;
@@ -52,7 +53,7 @@ public class SecurityConfig {
 		auth
 		    .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh")
 		    .permitAll()
-		    .requestMatchers("/api/health")
+		    .requestMatchers("/actuator/health", "/actuator/info")
 		    .permitAll()
 		    .requestMatchers("/api/auth/**")
 		    .authenticated()
@@ -78,6 +79,10 @@ public class SecurityConfig {
 		)
 	    )
 
+	    .addFilterBefore(
+		requestIdFilter,
+		UsernamePasswordAuthenticationFilter.class
+	    )
 	    .addFilterBefore(
 		jwtAuthFilter,
 		UsernamePasswordAuthenticationFilter.class

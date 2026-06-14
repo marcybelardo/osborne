@@ -59,6 +59,7 @@ public class UserService {
             user.getId(),
             user.getDisplayName(),
             user.getEmail(),
+            user.getRole(),
             user.getCreatedAt()
         );
     }

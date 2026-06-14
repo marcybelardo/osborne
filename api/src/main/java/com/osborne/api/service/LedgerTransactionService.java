@@ -1,14 +1,17 @@
 package com.osborne.api.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.osborne.api.dto.CreateLedgerTransactionRequest;
 import com.osborne.api.dto.LedgerTransactionResponse;
@@ -55,6 +58,10 @@ public class LedgerTransactionService {
     public LedgerTransactionResponse createTransaction(UUID accountId, CreateLedgerTransactionRequest request) {
         Account account = getAccountAndVerifyAccess(accountId);
 
+        if (request.amount().compareTo(BigDecimal.ZERO) == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction amount must not be zero");
+        }
+
         LedgerTransaction transaction = LedgerTransaction.builder()
             .amount(request.amount())
             .description(request.description())
@@ -79,6 +86,9 @@ public class LedgerTransactionService {
         }
 
         if (request.amount() != null) {
+            if (request.amount().compareTo(BigDecimal.ZERO) == 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction amount must not be zero");
+            }
             transaction.setAmount(request.amount());
         }
         if (request.description() != null) {

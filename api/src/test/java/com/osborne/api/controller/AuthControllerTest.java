@@ -63,6 +63,7 @@ class AuthControllerTest {
     private void mockTokens() {
         when(jwtUtil.generateToken(any(UserDetails.class))).thenReturn("access-token");
         when(jwtUtil.generateRefreshToken(any(UserDetails.class))).thenReturn("refresh-token");
+        when(jwtUtil.hashToken("refresh-token")).thenReturn("hashed-refresh-token");
     }
 
     private void mockAuthDependencies(User user) {
@@ -202,7 +203,7 @@ class AuthControllerTest {
         @Test
         void shouldRefreshToken() throws Exception {
             var user = buildUser("user@example.com");
-            user.setRefreshToken("valid-refresh-token");
+            user.setRefreshTokenHash("hashed-valid");
             var userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username("user@example.com")
                 .password("hashed-password")
@@ -210,6 +211,7 @@ class AuthControllerTest {
                 .build();
 
             when(jwtUtil.extractUsername("valid-refresh-token")).thenReturn("user@example.com");
+            when(jwtUtil.hashToken("valid-refresh-token")).thenReturn("hashed-valid");
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
             when(userDetailsService.loadUserByUsername("user@example.com")).thenReturn(userDetails);
             when(jwtUtil.validateToken("valid-refresh-token", userDetails)).thenReturn(true);
@@ -239,9 +241,10 @@ class AuthControllerTest {
         @Test
         void shouldRejectRevokedToken() throws Exception {
             var user = buildUser("user@example.com");
-            user.setRefreshToken("different-token");
+            user.setRefreshTokenHash("hashed-different");
 
             when(jwtUtil.extractUsername("stale-token")).thenReturn("user@example.com");
+            when(jwtUtil.hashToken("stale-token")).thenReturn("hashed-stale");
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
 
             mockMvc.perform(post("/api/auth/refresh")
@@ -254,7 +257,7 @@ class AuthControllerTest {
         @Test
         void shouldRejectExpiredToken() throws Exception {
             var user = buildUser("user@example.com");
-            user.setRefreshToken("expired-token");
+            user.setRefreshTokenHash("hashed-expired");
             var userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username("user@example.com")
                 .password("hashed-password")
@@ -262,6 +265,7 @@ class AuthControllerTest {
                 .build();
 
             when(jwtUtil.extractUsername("expired-token")).thenReturn("user@example.com");
+            when(jwtUtil.hashToken("expired-token")).thenReturn("hashed-expired");
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
             when(userDetailsService.loadUserByUsername("user@example.com")).thenReturn(userDetails);
             when(jwtUtil.validateToken("expired-token", userDetails)).thenReturn(false);

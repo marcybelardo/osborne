@@ -53,7 +53,7 @@ public class AccountController {
     @PutMapping("/{id}")
     public ResponseEntity<AccountResponse> updateAccount(
         @PathVariable UUID id,
-        @RequestBody UpdateAccountRequest request
+        @Valid @RequestBody UpdateAccountRequest request
     ) {
         return ResponseEntity.ok(accountService.updateAccount(id, request));
     }

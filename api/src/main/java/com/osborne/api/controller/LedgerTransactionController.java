@@ -57,7 +57,7 @@ public class LedgerTransactionController {
     public ResponseEntity<LedgerTransactionResponse> updateTransaction(
             @PathVariable UUID accountId,
             @PathVariable UUID id,
-            @RequestBody UpdateLedgerTransactionRequest request) {
+            @Valid @RequestBody UpdateLedgerTransactionRequest request) {
         return ResponseEntity.ok(ledgerTransactionService.updateTransaction(accountId, id, request));
     }
 

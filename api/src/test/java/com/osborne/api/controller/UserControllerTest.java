@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.osborne.api.config.SecurityConfig;
 import com.osborne.api.dto.UserResponse;
+import com.osborne.api.enums.UserRole;
 import com.osborne.api.model.User;
 import com.osborne.api.security.JwtUtil;
 import com.osborne.api.service.UserService;
@@ -49,6 +50,7 @@ class UserControllerTest {
             UUID.randomUUID(),
             "Test User",
             "user@example.com",
+            UserRole.USER,
             LocalDateTime.now()
         );
     }
@@ -57,8 +59,8 @@ class UserControllerTest {
     class CreateUser {
 
         @Test
-        @WithMockUser
-        void shouldCreateUser() throws Exception {
+        @WithMockUser(roles = "ADMIN")
+        void shouldCreateUserAsAdmin() throws Exception {
             var response = buildUserResponse();
             when(userService.createUser(any())).thenReturn(User.builder().build());
             when(userService.toResponse(any(User.class))).thenReturn(response);
@@ -71,6 +73,16 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.displayName").value("Test User"))
                 .andExpect(jsonPath("$.email").value("user@example.com"))
                 .andExpect(jsonPath("$.id").value(response.id().toString()));
+        }
+
+        @Test
+        @WithMockUser(roles = "USER")
+        void shouldRejectNonAdmin() throws Exception {
+            mockMvc.perform(post("/api/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""
+                        {"displayName":"Test User","email":"user@example.com","password":"password123"}"""))
+                .andExpect(status().isForbidden());
         }
 
         @Test

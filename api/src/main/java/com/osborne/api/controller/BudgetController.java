@@ -48,7 +48,7 @@ public class BudgetController {
     @PutMapping("/{id}")
     public ResponseEntity<BudgetResponse> updateBudget(
             @PathVariable UUID id,
-            @RequestBody UpdateBudgetRequest request) {
+            @Valid @RequestBody UpdateBudgetRequest request) {
         return ResponseEntity.ok(budgetService.updateBudget(id, request));
     }
 

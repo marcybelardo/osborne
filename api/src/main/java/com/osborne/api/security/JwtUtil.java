@@ -1,6 +1,8 @@
 package com.osborne.api.security;
 
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 
 @Service
 public class JwtUtil {
@@ -77,6 +80,36 @@ public class JwtUtil {
 	    .build()
 	    .parseSignedClaims(token)
 	    .getPayload();
+    }
+
+    @PostConstruct
+    void validateSecret() {
+	byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+	if (keyBytes.length < 32) {
+	    throw new IllegalStateException(
+		"JWT secret must be at least 32 bytes (256 bits) for HS256. " +
+		"Current length: " + keyBytes.length + " bytes. " +
+		"Generate one with: openssl rand -hex 32"
+	    );
+	}
+    }
+
+    public String hashToken(String token) {
+	try {
+	    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+	    byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+	    StringBuilder hexString = new StringBuilder();
+	    for (byte b : hash) {
+		String hex = Integer.toHexString(0xff & b);
+		if (hex.length() == 1) {
+		    hexString.append('0');
+		}
+		hexString.append(hex);
+	    }
+	    return hexString.toString();
+	} catch (NoSuchAlgorithmException e) {
+	    throw new RuntimeException("SHA-256 algorithm not available", e);
+	}
     }
 
     private SecretKey getSigningKey() {

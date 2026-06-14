@@ -4,9 +4,12 @@ import java.util.Set;
 import java.util.HashSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.osborne.api.enums.UserRole;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
@@ -41,9 +44,14 @@ public class User extends BaseEntity {
     @JsonIgnore
     private String passwordHash;
 
-    @Column(name = "refresh_token", length = 512)
+    @Column(name = "refresh_token_hash", length = 64)
     @JsonIgnore
-    private String refreshToken;
+    private String refreshTokenHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 16)
+    @Builder.Default
+    private UserRole role = UserRole.USER;
 
     @ManyToMany(mappedBy = "users")
     @Builder.Default

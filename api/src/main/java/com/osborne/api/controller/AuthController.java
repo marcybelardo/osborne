@@ -38,7 +38,7 @@ public class AuthController {
 	var accessToken = jwtUtil.generateToken(userDetails);
 	var refreshToken = jwtUtil.generateRefreshToken(userDetails);
 
-	user.setRefreshToken(refreshToken);
+	user.setRefreshTokenHash(jwtUtil.hashToken(refreshToken));
 	userRepository.save(user);
 
 	return new AuthResponse(accessToken, refreshToken, user.getDisplayName(), user.getId().toString());
@@ -112,7 +112,8 @@ public class AuthController {
 		)
 	    );
 
-	if (!refreshToken.equals(user.getRefreshToken())) {
+	String incomingHash = jwtUtil.hashToken(refreshToken);
+	if (!incomingHash.equals(user.getRefreshTokenHash())) {
 	    throw new ResponseStatusException(
 		HttpStatus.UNAUTHORIZED,
 		"Refresh token has been revoked"
@@ -146,7 +147,7 @@ public class AuthController {
 		)
 	    );
 
-	user.setRefreshToken(null);
+	user.setRefreshTokenHash(null);
 	userRepository.save(user);
 
 	return ResponseEntity.noContent().build();
