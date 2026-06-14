@@ -3,6 +3,11 @@ spring:
   application:
     name: osborne-api
 
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/osborne}
+    username: ${DB_USER:username}
+    password: ${DB_PASSWORD:changeme}
+
   jpa:
     properties:
       hibernate:
@@ -12,7 +17,7 @@ cors:
   allowed-origins: http://localhost:5173,http://localhost:3000
 
 jwt:
-  secret: change-me-in-production
+  secret: ${JWT_SECRET:261c1ec521e32e96b7cf62fa327eeae4f45e6161b5f0e2df717bc1080a53c62c}
   expiration: 900000
   refresh-expiration: 604800000
 
