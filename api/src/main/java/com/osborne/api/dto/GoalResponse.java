@@ -6,15 +6,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-public record LedgerTransactionResponse(
+public record GoalResponse(
     UUID id,
-    BigDecimal amount,
-    String description,
-    String category,
-    LocalDate transactionDate,
-    UUID accountId,
-    List<UUID> budgetIds,
-    List<UUID> goalIds,
+    String name,
+    BigDecimal targetAmount,
+    BigDecimal currentAmount,
+    LocalDate targetDate,
+    double progressPercent,
+    List<UUID> userIds,
+    List<UUID> transactionIds,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {}

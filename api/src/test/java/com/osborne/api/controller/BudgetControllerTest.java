@@ -58,7 +58,7 @@ class BudgetControllerTest {
             UUID.randomUUID(),
             BigDecimal.valueOf(500),
             BigDecimal.ZERO,
-            UUID.randomUUID(),
+            List.<UUID>of(UUID.randomUUID()),
             List.of(),
             LocalDateTime.now(),
             LocalDateTime.now()
@@ -174,7 +174,7 @@ class BudgetControllerTest {
         void shouldUpdateBudgetAmount() throws Exception {
             var budget = new BudgetResponse(
                 UUID.randomUUID(), BigDecimal.valueOf(1000), BigDecimal.ZERO,
-                UUID.randomUUID(), List.of(),
+                List.<UUID>of(UUID.randomUUID()), List.of(),
                 LocalDateTime.now(), LocalDateTime.now()
             );
             when(budgetService.updateBudget(eq(budget.id()), any())).thenReturn(budget);

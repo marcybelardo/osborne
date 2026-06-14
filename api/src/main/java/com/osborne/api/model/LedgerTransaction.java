@@ -52,4 +52,8 @@ public class LedgerTransaction extends BaseEntity {
     @Builder.Default
     private List<Budget> budgets = new ArrayList<>();
 
+    @ManyToMany(mappedBy = "transactions")
+    @Builder.Default
+    private List<Goal> goals = new ArrayList<>();
+
 }

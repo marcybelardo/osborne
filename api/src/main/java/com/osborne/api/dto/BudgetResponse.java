@@ -9,7 +9,7 @@ public record BudgetResponse(
     UUID id,
     BigDecimal amount,
     BigDecimal currentSpending,
-    UUID createdByUserId,
+    List<UUID> userIds,
     List<UUID> transactionIds,
     LocalDateTime createdAt,
     LocalDateTime updatedAt

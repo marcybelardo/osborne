@@ -66,6 +66,7 @@ class BudgetTransactionControllerTest {
             LocalDate.now(),
             UUID.randomUUID(),
             List.of(budgetId),
+            List.of(),
             LocalDateTime.now(),
             LocalDateTime.now()
         );

@@ -18,6 +18,7 @@ import com.osborne.api.dto.LedgerTransactionResponse;
 import com.osborne.api.dto.UpdateLedgerTransactionRequest;
 import com.osborne.api.model.Account;
 import com.osborne.api.model.Budget;
+import com.osborne.api.model.Goal;
 import com.osborne.api.model.LedgerTransaction;
 import com.osborne.api.model.User;
 import com.osborne.api.repository.AccountRepository;
@@ -140,6 +141,10 @@ public class LedgerTransactionService {
             .map(Budget::getId)
             .toList();
 
+        List<UUID> goalIds = transaction.getGoals().stream()
+            .map(Goal::getId)
+            .toList();
+
         return new LedgerTransactionResponse(
             transaction.getId(),
             transaction.getAmount(),
@@ -148,6 +153,7 @@ public class LedgerTransactionService {
             transaction.getTransactionDate(),
             transaction.getAccount().getId(),
             budgetIds,
+            goalIds,
             transaction.getCreatedAt(),
             transaction.getUpdatedAt()
         );

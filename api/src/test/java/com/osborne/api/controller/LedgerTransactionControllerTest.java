@@ -65,6 +65,7 @@ class LedgerTransactionControllerTest {
             LocalDate.now(),
             accountId,
             List.of(),
+            List.of(),
             LocalDateTime.now(),
             LocalDateTime.now()
         );
@@ -175,7 +176,7 @@ class LedgerTransactionControllerTest {
             var tx = new LedgerTransactionResponse(
                 UUID.randomUUID(), BigDecimal.valueOf(-100),
                 "Updated desc", "Bills", LocalDate.now(),
-                accountId, List.of(),
+                accountId, List.of(), List.of(),
                 LocalDateTime.now(), LocalDateTime.now()
             );
             when(ledgerTransactionService.updateTransaction(eq(accountId), eq(tx.id()), any()))

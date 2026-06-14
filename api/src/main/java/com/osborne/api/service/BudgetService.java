@@ -2,6 +2,8 @@ package com.osborne.api.service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -16,6 +18,7 @@ import com.osborne.api.dto.CreateBudgetRequest;
 import com.osborne.api.dto.LedgerTransactionResponse;
 import com.osborne.api.dto.UpdateBudgetRequest;
 import com.osborne.api.model.Budget;
+import com.osborne.api.model.Goal;
 import com.osborne.api.model.LedgerTransaction;
 import com.osborne.api.model.User;
 import com.osborne.api.repository.BudgetRepository;
@@ -37,7 +40,7 @@ public class BudgetService {
         User currentUser = getCurrentUser();
         // TODO: N+1 — currentSpending computed per budget. Acceptable for
         // paginated results. Consider a custom query for batching.
-        return budgetRepository.findByCreatedBy(currentUser, pageable)
+        return budgetRepository.findByUsersContaining(currentUser, pageable)
             .map(this::toResponse);
     }
 
@@ -45,7 +48,7 @@ public class BudgetService {
     public BudgetResponse getBudgetById(UUID id) {
         Budget budget = budgetRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Budget not found with id: " + id));
-        verifyOwnership(budget);
+        verifyAccess(budget);
         return toResponse(budget);
     }
 
@@ -54,7 +57,7 @@ public class BudgetService {
         User currentUser = getCurrentUser();
         Budget budget = Budget.builder()
             .amount(request.amount())
-            .createdBy(currentUser)
+            .users(new HashSet<>(Set.of(currentUser)))
             .build();
         Budget saved = budgetRepository.save(budget);
         return toResponse(saved);
@@ -64,7 +67,7 @@ public class BudgetService {
     public BudgetResponse updateBudget(UUID id, UpdateBudgetRequest request) {
         Budget budget = budgetRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Budget not found with id: " + id));
-        verifyOwnership(budget);
+        verifyAccess(budget);
 
         if (request.amount() != null) {
             budget.setAmount(request.amount());
@@ -78,7 +81,7 @@ public class BudgetService {
     public void deleteBudget(UUID id) {
         Budget budget = budgetRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Budget not found with id: " + id));
-        verifyOwnership(budget);
+        verifyAccess(budget);
         budgetRepository.delete(budget);
     }
 
@@ -86,7 +89,7 @@ public class BudgetService {
     public Page<LedgerTransactionResponse> getBudgetTransactions(UUID budgetId, Pageable pageable) {
         Budget budget = budgetRepository.findById(budgetId)
             .orElseThrow(() -> new EntityNotFoundException("Budget not found with id: " + budgetId));
-        verifyOwnership(budget);
+        verifyAccess(budget);
         return ledgerTransactionRepository.findByBudgetsId(budgetId, pageable)
             .map(this::toTransactionResponse);
     }
@@ -95,7 +98,7 @@ public class BudgetService {
     public void addTransactionToBudget(UUID budgetId, UUID transactionId) {
         Budget budget = budgetRepository.findById(budgetId)
             .orElseThrow(() -> new EntityNotFoundException("Budget not found with id: " + budgetId));
-        verifyOwnership(budget);
+        verifyAccess(budget);
 
         LedgerTransaction transaction = ledgerTransactionRepository.findById(transactionId)
             .orElseThrow(() -> new EntityNotFoundException("Transaction not found with id: " + transactionId));
@@ -108,7 +111,7 @@ public class BudgetService {
     public void removeTransactionFromBudget(UUID budgetId, UUID transactionId) {
         Budget budget = budgetRepository.findById(budgetId)
             .orElseThrow(() -> new EntityNotFoundException("Budget not found with id: " + budgetId));
-        verifyOwnership(budget);
+        verifyAccess(budget);
 
         boolean removed = budget.getTransactions()
             .removeIf(t -> t.getId().equals(transactionId));
@@ -120,15 +123,54 @@ public class BudgetService {
         budgetRepository.save(budget);
     }
 
+    @Transactional(readOnly = true)
+    public List<User> getBudgetUsers(UUID budgetId) {
+        Budget budget = budgetRepository.findById(budgetId)
+            .orElseThrow(() -> new EntityNotFoundException("Budget not found with id: " + budgetId));
+        verifyAccess(budget);
+        return List.copyOf(budget.getUsers());
+    }
+
+    @Transactional
+    public void addUserToBudget(UUID budgetId, UUID userId) {
+        Budget budget = budgetRepository.findById(budgetId)
+            .orElseThrow(() -> new EntityNotFoundException("Budget not found with id: " + budgetId));
+        verifyAccess(budget);
+
+        User targetUser = userService.getUserById(userId);
+        budget.getUsers().add(targetUser);
+        budgetRepository.save(budget);
+    }
+
+    @Transactional
+    public void removeUserFromBudget(UUID budgetId, UUID userId) {
+        Budget budget = budgetRepository.findById(budgetId)
+            .orElseThrow(() -> new EntityNotFoundException("Budget not found with id: " + budgetId));
+        verifyAccess(budget);
+
+        if (budget.getUsers().size() <= 1) {
+            throw new IllegalStateException("Budget must have at least one manager");
+        }
+
+        boolean removed = budget.getUsers()
+            .removeIf(u -> u.getId().equals(userId));
+
+        if (!removed) {
+            throw new EntityNotFoundException("User not found on budget");
+        }
+
+        budgetRepository.save(budget);
+    }
+
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userService.getUserByEmail(email);
     }
 
-    private void verifyOwnership(Budget budget) {
+    private void verifyAccess(Budget budget) {
         User currentUser = getCurrentUser();
-        if (!budget.getCreatedBy().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("Not the owner of this budget");
+        if (!budget.getUsers().contains(currentUser)) {
+            throw new AccessDeniedException("User does not manage this budget");
         }
     }
 
@@ -141,11 +183,15 @@ public class BudgetService {
             .map(LedgerTransaction::getId)
             .toList();
 
+        List<UUID> userIds = budget.getUsers().stream()
+            .map(User::getId)
+            .toList();
+
         return new BudgetResponse(
             budget.getId(),
             budget.getAmount(),
             currentSpending,
-            budget.getCreatedBy().getId(),
+            userIds,
             transactionIds,
             budget.getCreatedAt(),
             budget.getUpdatedAt()
@@ -157,6 +203,10 @@ public class BudgetService {
             .map(Budget::getId)
             .toList();
 
+        List<UUID> goalIds = transaction.getGoals().stream()
+            .map(Goal::getId)
+            .toList();
+
         return new LedgerTransactionResponse(
             transaction.getId(),
             transaction.getAmount(),
@@ -165,6 +215,7 @@ public class BudgetService {
             transaction.getTransactionDate(),
             transaction.getAccount().getId(),
             budgetIds,
+            goalIds,
             transaction.getCreatedAt(),
             transaction.getUpdatedAt()
         );

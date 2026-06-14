@@ -2,14 +2,17 @@ package com.osborne.api.model;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 import java.util.ArrayList;
+import java.util.HashSet;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -29,9 +32,15 @@ public class Budget extends BaseEntity {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by", nullable = false)
-    private User createdBy;
+    @ManyToMany
+    @JoinTable(
+	name = "budget_users",
+	joinColumns = @JoinColumn(name = "budget_id"),
+	inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @Builder.Default
+    @JsonIgnore
+    private Set<User> users = new HashSet<>();
 
     @OneToMany
     @JoinTable(
