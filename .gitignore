@@ -110,6 +110,9 @@ $RECYCLE.BIN/
 # Docker override files with local secrets
 docker-compose.override.yml
 
+# Agent context files (private)
+AGENTS.md
+
 # Terraform (if used for infra)
 *.tfstate
 *.tfstate.backup
