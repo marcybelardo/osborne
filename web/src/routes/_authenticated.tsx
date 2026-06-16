@@ -34,6 +34,9 @@ function AuthenticatedLayout() {
                 </span>
               )}
             </a>
+            <a href="/accounts" className="text-sm text-gray-600 hover:text-gray-900">
+              Accounts
+            </a>
             <a href="/logout" className="text-sm text-gray-600 hover:text-gray-900">
               Log out
             </a>

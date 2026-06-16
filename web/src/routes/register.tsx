@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { apiClient, ApiError } from '../api/client'
 import { setTokens } from '../lib/auth'
 
@@ -43,7 +43,7 @@ function Register() {
     },
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
     registerMutation.mutate({ displayName, email, password })

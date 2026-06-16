@@ -14,6 +14,12 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedLogoutRouteImport } from './routes/_authenticated.logout'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as AuthenticatedAccountsRouteImport } from './routes/_authenticated.accounts'
+import { Route as AuthenticatedAccountsNewRouteImport } from './routes/_authenticated.accounts.new'
+import { Route as AuthenticatedAccountsAccountIdRouteImport } from './routes/_authenticated.accounts.$accountId'
+import { Route as AuthenticatedAccountsAccountIdEditRouteImport } from './routes/_authenticated.accounts.$accountId.edit'
+import { Route as AuthenticatedAccountsAccountIdTransactionsNewRouteImport } from './routes/_authenticated.accounts.$accountId.transactions.new'
+import { Route as AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRouteImport } from './routes/_authenticated.accounts.$accountId.transactions.$transactionId.edit'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -39,39 +45,120 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAccountsRoute = AuthenticatedAccountsRouteImport.update({
+  id: '/accounts',
+  path: '/accounts',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAccountsNewRoute =
+  AuthenticatedAccountsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAccountsRoute,
+  } as any)
+const AuthenticatedAccountsAccountIdRoute =
+  AuthenticatedAccountsAccountIdRouteImport.update({
+    id: '/$accountId',
+    path: '/$accountId',
+    getParentRoute: () => AuthenticatedAccountsRoute,
+  } as any)
+const AuthenticatedAccountsAccountIdEditRoute =
+  AuthenticatedAccountsAccountIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AuthenticatedAccountsAccountIdRoute,
+  } as any)
+const AuthenticatedAccountsAccountIdTransactionsNewRoute =
+  AuthenticatedAccountsAccountIdTransactionsNewRouteImport.update({
+    id: '/transactions/new',
+    path: '/transactions/new',
+    getParentRoute: () => AuthenticatedAccountsAccountIdRoute,
+  } as any)
+const AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRoute =
+  AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRouteImport.update(
+    {
+      id: '/transactions/$transactionId/edit',
+      path: '/transactions/$transactionId/edit',
+      getParentRoute: () => AuthenticatedAccountsAccountIdRoute,
+    } as any,
+  )
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/register': typeof RegisterRoute
+  '/accounts': typeof AuthenticatedAccountsRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/logout': typeof AuthenticatedLogoutRoute
+  '/accounts/$accountId': typeof AuthenticatedAccountsAccountIdRouteWithChildren
+  '/accounts/new': typeof AuthenticatedAccountsNewRoute
+  '/accounts/$accountId/edit': typeof AuthenticatedAccountsAccountIdEditRoute
+  '/accounts/$accountId/transactions/new': typeof AuthenticatedAccountsAccountIdTransactionsNewRoute
+  '/accounts/$accountId/transactions/$transactionId/edit': typeof AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/register': typeof RegisterRoute
+  '/accounts': typeof AuthenticatedAccountsRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/logout': typeof AuthenticatedLogoutRoute
+  '/accounts/$accountId': typeof AuthenticatedAccountsAccountIdRouteWithChildren
+  '/accounts/new': typeof AuthenticatedAccountsNewRoute
+  '/accounts/$accountId/edit': typeof AuthenticatedAccountsAccountIdEditRoute
+  '/accounts/$accountId/transactions/new': typeof AuthenticatedAccountsAccountIdTransactionsNewRoute
+  '/accounts/$accountId/transactions/$transactionId/edit': typeof AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/register': typeof RegisterRoute
+  '/_authenticated/accounts': typeof AuthenticatedAccountsRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/logout': typeof AuthenticatedLogoutRoute
+  '/_authenticated/accounts/$accountId': typeof AuthenticatedAccountsAccountIdRouteWithChildren
+  '/_authenticated/accounts/new': typeof AuthenticatedAccountsNewRoute
+  '/_authenticated/accounts/$accountId/edit': typeof AuthenticatedAccountsAccountIdEditRoute
+  '/_authenticated/accounts/$accountId/transactions/new': typeof AuthenticatedAccountsAccountIdTransactionsNewRoute
+  '/_authenticated/accounts/$accountId/transactions/$transactionId/edit': typeof AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/register' | '/dashboard' | '/logout'
+  fullPaths:
+    | '/'
+    | '/register'
+    | '/accounts'
+    | '/dashboard'
+    | '/logout'
+    | '/accounts/$accountId'
+    | '/accounts/new'
+    | '/accounts/$accountId/edit'
+    | '/accounts/$accountId/transactions/new'
+    | '/accounts/$accountId/transactions/$transactionId/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/register' | '/dashboard' | '/logout'
+  to:
+    | '/'
+    | '/register'
+    | '/accounts'
+    | '/dashboard'
+    | '/logout'
+    | '/accounts/$accountId'
+    | '/accounts/new'
+    | '/accounts/$accountId/edit'
+    | '/accounts/$accountId/transactions/new'
+    | '/accounts/$accountId/transactions/$transactionId/edit'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/register'
+    | '/_authenticated/accounts'
     | '/_authenticated/dashboard'
     | '/_authenticated/logout'
+    | '/_authenticated/accounts/$accountId'
+    | '/_authenticated/accounts/new'
+    | '/_authenticated/accounts/$accountId/edit'
+    | '/_authenticated/accounts/$accountId/transactions/new'
+    | '/_authenticated/accounts/$accountId/transactions/$transactionId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,15 +204,96 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/accounts': {
+      id: '/_authenticated/accounts'
+      path: '/accounts'
+      fullPath: '/accounts'
+      preLoaderRoute: typeof AuthenticatedAccountsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/accounts/new': {
+      id: '/_authenticated/accounts/new'
+      path: '/new'
+      fullPath: '/accounts/new'
+      preLoaderRoute: typeof AuthenticatedAccountsNewRouteImport
+      parentRoute: typeof AuthenticatedAccountsRoute
+    }
+    '/_authenticated/accounts/$accountId': {
+      id: '/_authenticated/accounts/$accountId'
+      path: '/$accountId'
+      fullPath: '/accounts/$accountId'
+      preLoaderRoute: typeof AuthenticatedAccountsAccountIdRouteImport
+      parentRoute: typeof AuthenticatedAccountsRoute
+    }
+    '/_authenticated/accounts/$accountId/edit': {
+      id: '/_authenticated/accounts/$accountId/edit'
+      path: '/edit'
+      fullPath: '/accounts/$accountId/edit'
+      preLoaderRoute: typeof AuthenticatedAccountsAccountIdEditRouteImport
+      parentRoute: typeof AuthenticatedAccountsAccountIdRoute
+    }
+    '/_authenticated/accounts/$accountId/transactions/new': {
+      id: '/_authenticated/accounts/$accountId/transactions/new'
+      path: '/transactions/new'
+      fullPath: '/accounts/$accountId/transactions/new'
+      preLoaderRoute: typeof AuthenticatedAccountsAccountIdTransactionsNewRouteImport
+      parentRoute: typeof AuthenticatedAccountsAccountIdRoute
+    }
+    '/_authenticated/accounts/$accountId/transactions/$transactionId/edit': {
+      id: '/_authenticated/accounts/$accountId/transactions/$transactionId/edit'
+      path: '/transactions/$transactionId/edit'
+      fullPath: '/accounts/$accountId/transactions/$transactionId/edit'
+      preLoaderRoute: typeof AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRouteImport
+      parentRoute: typeof AuthenticatedAccountsAccountIdRoute
+    }
   }
 }
 
+interface AuthenticatedAccountsAccountIdRouteChildren {
+  AuthenticatedAccountsAccountIdEditRoute: typeof AuthenticatedAccountsAccountIdEditRoute
+  AuthenticatedAccountsAccountIdTransactionsNewRoute: typeof AuthenticatedAccountsAccountIdTransactionsNewRoute
+  AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRoute: typeof AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRoute
+}
+
+const AuthenticatedAccountsAccountIdRouteChildren: AuthenticatedAccountsAccountIdRouteChildren =
+  {
+    AuthenticatedAccountsAccountIdEditRoute:
+      AuthenticatedAccountsAccountIdEditRoute,
+    AuthenticatedAccountsAccountIdTransactionsNewRoute:
+      AuthenticatedAccountsAccountIdTransactionsNewRoute,
+    AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRoute:
+      AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRoute,
+  }
+
+const AuthenticatedAccountsAccountIdRouteWithChildren =
+  AuthenticatedAccountsAccountIdRoute._addFileChildren(
+    AuthenticatedAccountsAccountIdRouteChildren,
+  )
+
+interface AuthenticatedAccountsRouteChildren {
+  AuthenticatedAccountsAccountIdRoute: typeof AuthenticatedAccountsAccountIdRouteWithChildren
+  AuthenticatedAccountsNewRoute: typeof AuthenticatedAccountsNewRoute
+}
+
+const AuthenticatedAccountsRouteChildren: AuthenticatedAccountsRouteChildren = {
+  AuthenticatedAccountsAccountIdRoute:
+    AuthenticatedAccountsAccountIdRouteWithChildren,
+  AuthenticatedAccountsNewRoute: AuthenticatedAccountsNewRoute,
+}
+
+const AuthenticatedAccountsRouteWithChildren =
+  AuthenticatedAccountsRoute._addFileChildren(
+    AuthenticatedAccountsRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
+  AuthenticatedAccountsRoute: typeof AuthenticatedAccountsRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedLogoutRoute: typeof AuthenticatedLogoutRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAccountsRoute: AuthenticatedAccountsRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedLogoutRoute: AuthenticatedLogoutRoute,
 }
