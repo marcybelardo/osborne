@@ -1,0 +1,7 @@
+ALTER TABLE budgets ADD COLUMN IF NOT EXISTS name VARCHAR(200);
+ALTER TABLE budgets ADD COLUMN IF NOT EXISTS description VARCHAR(500);
+ALTER TABLE budgets ADD COLUMN IF NOT EXISTS start_date DATE;
+ALTER TABLE budgets ADD COLUMN IF NOT EXISTS end_date DATE;
+
+UPDATE budgets SET name = 'Budget ' || substring(id::text, 1, 8) WHERE name IS NULL;
+ALTER TABLE budgets ALTER COLUMN name SET NOT NULL;

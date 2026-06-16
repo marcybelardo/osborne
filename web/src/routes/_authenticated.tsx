@@ -34,8 +34,14 @@ function AuthenticatedLayout() {
                 </span>
               )}
             </a>
+            <a href="/budgets" className="text-sm text-gray-600 hover:text-gray-900">
+              Budgets
+            </a>
             <a href="/accounts" className="text-sm text-gray-600 hover:text-gray-900">
               Accounts
+            </a>
+            <a href="/goals" className="text-sm text-gray-600 hover:text-gray-900">
+              Goals
             </a>
             <a href="/logout" className="text-sm text-gray-600 hover:text-gray-900">
               Log out

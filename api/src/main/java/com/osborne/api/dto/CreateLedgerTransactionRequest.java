@@ -2,6 +2,8 @@ package com.osborne.api.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -17,5 +19,12 @@ public record CreateLedgerTransactionRequest(
 
     String category,
 
-    LocalDate transactionDate
-) {}
+    LocalDate transactionDate,
+
+    List<UUID> budgetIds,
+
+    List<UUID> goalIds
+) {
+    public List<UUID> budgetIds() { return budgetIds == null ? List.of() : budgetIds; }
+    public List<UUID> goalIds() { return goalIds == null ? List.of() : goalIds; }
+}

@@ -13,7 +13,7 @@ public record GoalResponse(
     BigDecimal currentAmount,
     LocalDate targetDate,
     double progressPercent,
-    List<UUID> userIds,
+    List<UserSummary> users,
     List<UUID> transactionIds,
     LocalDateTime createdAt,
     LocalDateTime updatedAt

@@ -1,49 +1,44 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import React, { useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../api/client'
 import { ArrowLeft } from 'lucide-react'
 
-export const Route = createFileRoute('/_authenticated/accounts/new')({
-  component: CreateAccount,
+export const Route = createFileRoute('/_authenticated/goals/new')({
+  component: CreateGoal,
 })
 
-const ACCOUNT_TYPES = ['ASSET', 'CASH', 'CREDIT_CARD', 'EXPENSE', 'REVENUE'] as const
-
-interface AccountResponse {
+interface GoalResponse {
   id: string
   name: string
-  type: string
-  currency: string
-  initialBalance: number
-  currentBalance: number
+  targetAmount: number
+  currentAmount: number
+  progressPercent: number
+  targetDate: string | null
   users: { id: string; displayName: string }[]
 }
 
-function CreateAccount() {
+function CreateGoal() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-
   const [name, setName] = useState('')
-  const [type, setType] = useState<string>(ACCOUNT_TYPES[0])
-  const [currency, setCurrency] = useState('USD')
-  const [initialBalance, setInitialBalance] = useState('0')
+  const [targetAmount, setTargetAmount] = useState('')
+  const [targetDate, setTargetDate] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const createMutation = useMutation({
     mutationFn: (data: {
       name: string
-      type: string
-      currency: string
-      initialBalance: number
+      targetAmount: number
+      targetDate: string | null
     }) =>
-      apiClient<AccountResponse>('/api/accounts', {
+      apiClient<GoalResponse>('/api/goals', {
         method: 'POST',
         body: data,
       }),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] })
-      navigate({ to: '/accounts/$accountId', params: { accountId: data.id } })
+      queryClient.invalidateQueries({ queryKey: ['goals'] })
+      navigate({ to: '/goals/$goalId', params: { goalId: data.id } })
     },
     onError: (err: Error) => {
       setError(err.message)
@@ -55,31 +50,36 @@ function CreateAccount() {
     setError(null)
 
     if (!name.trim()) {
-      setError('Account name is required.')
+      setError('Goal name is required.')
+      return
+    }
+
+    const parsed = parseFloat(targetAmount)
+    if (isNaN(parsed) || parsed <= 0) {
+      setError('Target amount must be a positive number.')
       return
     }
 
     createMutation.mutate({
       name: name.trim(),
-      type,
-      currency: currency.trim() || 'USD',
-      initialBalance: parseFloat(initialBalance) || 0,
+      targetAmount: parsed,
+      targetDate: targetDate || null,
     })
   }
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
       <button
-        onClick={() => navigate({ to: '/accounts' })}
+        onClick={() => navigate({ to: '/goals' })}
         className="mb-6 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
       >
         <ArrowLeft size={16} />
-        Back to Accounts
+        Back to Goals
       </button>
 
-      <h1 className="text-2xl font-bold text-gray-900">New Account</h1>
+      <h1 className="text-2xl font-bold text-gray-900">New Goal</h1>
       <p className="mt-1 text-sm text-gray-500">
-        Create a new account to track your finances
+        Set a savings goal to work toward
       </p>
 
       <form
@@ -94,11 +94,8 @@ function CreateAccount() {
 
         <div className="space-y-4">
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Name
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              Goal Name
             </label>
             <input
               id="name"
@@ -106,66 +103,41 @@ function CreateAccount() {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Joint Checking"
+              placeholder="e.g. Emergency Fund"
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
 
           <div>
-            <label
-              htmlFor="type"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Type
-            </label>
-            <select
-              id="type"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            >
-              {ACCOUNT_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {formatType(t)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="currency"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Currency
+            <label htmlFor="targetAmount" className="block text-sm font-medium text-gray-700">
+              Target Amount
             </label>
             <input
-              id="currency"
-              type="text"
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              placeholder="USD"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="initialBalance"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Initial Balance
-            </label>
-            <input
-              id="initialBalance"
+              id="targetAmount"
               type="number"
               step="0.01"
-              value={initialBalance}
-              onChange={(e) => setInitialBalance(e.target.value)}
+              min="0.01"
+              required
+              value={targetAmount}
+              onChange={(e) => setTargetAmount(e.target.value)}
+              placeholder="0.00"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="targetDate" className="block text-sm font-medium text-gray-700">
+              Target Date
+            </label>
+            <input
+              id="targetDate"
+              type="date"
+              value={targetDate}
+              onChange={(e) => setTargetDate(e.target.value)}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
             <p className="mt-1 text-xs text-gray-400">
-              This value cannot be changed after creation.
+              Optional deadline for this goal
             </p>
           </div>
         </div>
@@ -176,11 +148,11 @@ function CreateAccount() {
             disabled={createMutation.isPending}
             className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
           >
-            {createMutation.isPending ? 'Creating...' : 'Create Account'}
+            {createMutation.isPending ? 'Creating...' : 'Create Goal'}
           </button>
           <button
             type="button"
-            onClick={() => navigate({ to: '/accounts' })}
+            onClick={() => navigate({ to: '/goals' })}
             className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
           >
             Cancel
@@ -189,11 +161,4 @@ function CreateAccount() {
       </form>
     </div>
   )
-}
-
-function formatType(type: string): string {
-  return type
-    .toLowerCase()
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase())
 }

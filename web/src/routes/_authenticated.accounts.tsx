@@ -14,7 +14,7 @@ interface AccountResponse {
   currency: string
   initialBalance: number
   currentBalance: number
-  userIds: string[]
+  users: { id: string; displayName: string }[]
 }
 
 interface AccountPage {
@@ -97,10 +97,10 @@ function AccountsLayout() {
                 >
                   {formatCurrency(account.currentBalance)}
                 </p>
-                {account.userIds.length > 1 && (
+                {account.users.length > 1 && (
                   <p className="mt-2 text-xs text-gray-400">
-                    Shared with {account.userIds.length - 1} other
-                    {account.userIds.length - 1 !== 1 ? 's' : ''}
+                    Shared with {account.users.length - 1} other
+                    {account.users.length - 1 !== 1 ? 's' : ''}
                   </p>
                 )}
               </Link>

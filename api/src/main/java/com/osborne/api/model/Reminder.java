@@ -1,6 +1,7 @@
 package com.osborne.api.model;
 
 import com.osborne.api.enums.ReminderStatus;
+import com.osborne.api.enums.ReminderType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,6 +37,10 @@ public class Reminder extends BaseEntity {
     @Column(nullable = false, length = 16)
     @Builder.Default
     private ReminderStatus status = ReminderStatus.PENDING;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private ReminderType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

@@ -21,6 +21,7 @@ import com.osborne.api.config.SecurityConfig;
 import com.osborne.api.dto.AccountResponse;
 import com.osborne.api.dto.CreateAccountRequest;
 import com.osborne.api.dto.UpdateAccountRequest;
+import com.osborne.api.dto.UserSummary;
 import com.osborne.api.enums.AccountType;
 import com.osborne.api.security.JwtUtil;
 import com.osborne.api.service.AccountService;
@@ -64,7 +65,7 @@ class AccountControllerTest {
             "USD",
             BigDecimal.valueOf(1000),
             BigDecimal.valueOf(1000),
-            List.of(UUID.randomUUID()),
+            List.of(new UserSummary(UUID.randomUUID(), "Test User")),
             LocalDateTime.now(),
             LocalDateTime.now()
         );
@@ -177,7 +178,7 @@ class AccountControllerTest {
         void shouldCreateAccountWithDefaults() throws Exception {
             var account = new AccountResponse(
                 UUID.randomUUID(), "Minimal", AccountType.EXPENSE, "USD",
-                BigDecimal.ZERO, BigDecimal.ZERO, List.of(),
+                BigDecimal.ZERO, BigDecimal.ZERO, List.<UserSummary>of(),
                 LocalDateTime.now(), LocalDateTime.now()
             );
             when(accountService.createAccount(any(CreateAccountRequest.class))).thenReturn(account);
@@ -229,7 +230,7 @@ class AccountControllerTest {
         void shouldUpdateAccountFields() throws Exception {
             var account = new AccountResponse(
                 UUID.randomUUID(), "Updated", AccountType.CREDIT_CARD, "USD",
-                BigDecimal.valueOf(1000), BigDecimal.valueOf(1000), List.of(),
+                BigDecimal.valueOf(1000), BigDecimal.valueOf(1000), List.<UserSummary>of(),
                 LocalDateTime.now(), LocalDateTime.now()
             );
             when(accountService.updateAccount(eq(account.id()), any(UpdateAccountRequest.class)))

@@ -14,7 +14,7 @@ public record AccountResponse(
     String currency,
     BigDecimal initialBalance,
     BigDecimal currentBalance,
-    List<UUID> userIds,
+    List<UserSummary> users,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {}

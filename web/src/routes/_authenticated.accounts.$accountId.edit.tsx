@@ -19,7 +19,7 @@ interface AccountResponse {
   currency: string
   initialBalance: number
   currentBalance: number
-  userIds: string[]
+  users: { id: string; displayName: string }[]
 }
 
 function EditAccount() {

@@ -21,11 +21,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.osborne.api.config.SecurityConfig;
-import com.osborne.api.dto.BudgetResponse;
+import com.osborne.api.dto.GoalResponse;
 import com.osborne.api.dto.UserSummary;
-import com.osborne.api.enums.BudgetTimeframe;
 import com.osborne.api.security.JwtUtil;
-import com.osborne.api.service.BudgetService;
+import com.osborne.api.service.GoalService;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -40,15 +39,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(BudgetController.class)
+@WebMvcTest(GoalController.class)
 @Import(SecurityConfig.class)
-class BudgetControllerTest {
+class GoalControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
-    private BudgetService budgetService;
+    private GoalService goalService;
 
     @MockitoBean
     private JwtUtil jwtUtil;
@@ -56,19 +55,14 @@ class BudgetControllerTest {
     @MockitoBean
     private UserDetailsService userDetailsService;
 
-    private BudgetResponse buildBudgetResponse() {
-        return new BudgetResponse(
+    private GoalResponse buildGoalResponse() {
+        return new GoalResponse(
             UUID.randomUUID(),
-            "Test Budget",
-            null,
-            BudgetTimeframe.CUSTOM,
-            null,
-            null,
-            LocalDate.now(),
-            LocalDate.now(),
-            "Custom",
+            "Test Goal",
+            BigDecimal.valueOf(1000),
             BigDecimal.valueOf(500),
-            BigDecimal.ZERO,
+            LocalDate.now().plusMonths(6),
+            50.0,
             List.of(new UserSummary(UUID.randomUUID(), "Test User")),
             List.of(),
             LocalDateTime.now(),
@@ -77,83 +71,83 @@ class BudgetControllerTest {
     }
 
     @Nested
-    class GetBudgets {
+    class GetGoals {
 
         @Test
         @WithMockUser
-        void shouldReturnPaginatedBudgets() throws Exception {
-            var budget = buildBudgetResponse();
-            var page = new PageImpl<>(List.of(budget), PageRequest.of(0, 20), 1);
-            when(budgetService.getBudgetsForCurrentUser(any())).thenReturn(page);
+        void shouldReturnPaginatedGoals() throws Exception {
+            var goal = buildGoalResponse();
+            var page = new PageImpl<>(List.of(goal), PageRequest.of(0, 20), 1);
+            when(goalService.getGoalsForCurrentUser(any())).thenReturn(page);
 
-            mockMvc.perform(get("/api/budgets"))
+            mockMvc.perform(get("/api/goals"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].amount").value(500))
-                .andExpect(jsonPath("$.content[0].currentSpending").value(0))
+                .andExpect(jsonPath("$.content[0].name").value("Test Goal"))
+                .andExpect(jsonPath("$.content[0].targetAmount").value(1000))
                 .andExpect(jsonPath("$.totalElements").value(1));
         }
 
         @Test
         void shouldRejectUnauthenticated() throws Exception {
-            mockMvc.perform(get("/api/budgets"))
+            mockMvc.perform(get("/api/goals"))
                 .andExpect(status().isUnauthorized());
         }
     }
 
     @Nested
-    class GetBudget {
+    class GetGoal {
 
         @Test
         @WithMockUser
-        void shouldReturnBudgetById() throws Exception {
-            var budget = buildBudgetResponse();
-            when(budgetService.getBudgetById(budget.id())).thenReturn(budget);
+        void shouldReturnGoalById() throws Exception {
+            var goal = buildGoalResponse();
+            when(goalService.getGoalById(goal.id())).thenReturn(goal);
 
-            mockMvc.perform(get("/api/budgets/" + budget.id()))
+            mockMvc.perform(get("/api/goals/" + goal.id()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.amount").value(500))
-                .andExpect(jsonPath("$.currentSpending").value(0));
+                .andExpect(jsonPath("$.name").value("Test Goal"))
+                .andExpect(jsonPath("$.targetAmount").value(1000));
         }
 
         @Test
         @WithMockUser
         void shouldReturnNotFound() throws Exception {
             var id = UUID.randomUUID();
-            when(budgetService.getBudgetById(id))
-                .thenThrow(new EntityNotFoundException("Budget not found"));
+            when(goalService.getGoalById(id))
+                .thenThrow(new EntityNotFoundException("Goal not found"));
 
-            mockMvc.perform(get("/api/budgets/" + id))
+            mockMvc.perform(get("/api/goals/" + id))
                 .andExpect(status().isNotFound());
         }
 
         @Test
         void shouldRejectUnauthenticated() throws Exception {
-            mockMvc.perform(get("/api/budgets/" + UUID.randomUUID()))
+            mockMvc.perform(get("/api/goals/" + UUID.randomUUID()))
                 .andExpect(status().isUnauthorized());
         }
     }
 
     @Nested
-    class CreateBudget {
+    class CreateGoal {
 
         @Test
         @WithMockUser
-        void shouldCreateBudget() throws Exception {
-            var budget = buildBudgetResponse();
-            when(budgetService.createBudget(any())).thenReturn(budget);
+        void shouldCreateGoal() throws Exception {
+            var goal = buildGoalResponse();
+            when(goalService.createGoal(any())).thenReturn(goal);
 
-            mockMvc.perform(post("/api/budgets")
+            mockMvc.perform(post("/api/goals")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"name\":\"Test Budget\",\"timeframe\":\"CUSTOM\",\"amount\":500}"))
+                    .content("{\"name\":\"Test Goal\",\"targetAmount\":1000}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.amount").value(500))
-                .andExpect(jsonPath("$.currentSpending").value(0));
+                .andExpect(jsonPath("$.name").value("Test Goal"))
+                .andExpect(jsonPath("$.targetAmount").value(1000));
         }
 
         @Test
         @WithMockUser
         void shouldRejectNullAmount() throws Exception {
-            mockMvc.perform(post("/api/budgets")
+            mockMvc.perform(post("/api/goals")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{}"))
                 .andExpect(status().isBadRequest());
@@ -162,119 +156,117 @@ class BudgetControllerTest {
         @Test
         @WithMockUser
         void shouldRejectNegativeAmount() throws Exception {
-            mockMvc.perform(post("/api/budgets")
+            mockMvc.perform(post("/api/goals")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"amount\":-100}"))
+                    .content("{\"name\":\"Test\",\"targetAmount\":-100}"))
                 .andExpect(status().isBadRequest());
         }
 
         @Test
         void shouldRejectUnauthenticated() throws Exception {
-            mockMvc.perform(post("/api/budgets")
+            mockMvc.perform(post("/api/goals")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"name\":\"Test\",\"amount\":500}"))
+                    .content("{\"name\":\"Test\",\"targetAmount\":1000}"))
                 .andExpect(status().isUnauthorized());
         }
     }
 
     @Nested
-    class UpdateBudget {
+    class UpdateGoal {
 
         @Test
         @WithMockUser
-        void shouldUpdateBudgetAmount() throws Exception {
-            var budget = new BudgetResponse(
-                UUID.randomUUID(), "Test Budget", null,
-                BudgetTimeframe.CUSTOM, null, null,
-                LocalDate.now(), LocalDate.now(), "Custom",
-                BigDecimal.valueOf(1000), BigDecimal.ZERO,
-                List.of(new UserSummary(UUID.randomUUID(), "Test User")),
-                List.of(),
-                LocalDateTime.now(), LocalDateTime.now()
+        void shouldUpdateGoal() throws Exception {
+            var goal = new GoalResponse(
+                UUID.randomUUID(), "Updated Goal", BigDecimal.valueOf(2000),
+                BigDecimal.valueOf(500), LocalDate.now().plusMonths(6),
+                25.0, List.of(new UserSummary(UUID.randomUUID(), "Test User")),
+                List.of(), LocalDateTime.now(), LocalDateTime.now()
             );
-            when(budgetService.updateBudget(eq(budget.id()), any())).thenReturn(budget);
+            when(goalService.updateGoal(eq(goal.id()), any())).thenReturn(goal);
 
-            mockMvc.perform(put("/api/budgets/" + budget.id())
+            mockMvc.perform(put("/api/goals/" + goal.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"amount\":1000}"))
+                    .content("{\"name\":\"Updated Goal\",\"targetAmount\":2000}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.amount").value(1000));
+                .andExpect(jsonPath("$.name").value("Updated Goal"))
+                .andExpect(jsonPath("$.targetAmount").value(2000));
         }
 
         @Test
         @WithMockUser
         void shouldReturnNotFound() throws Exception {
             var id = UUID.randomUUID();
-            when(budgetService.updateBudget(eq(id), any()))
-                .thenThrow(new EntityNotFoundException("Budget not found"));
+            when(goalService.updateGoal(eq(id), any()))
+                .thenThrow(new EntityNotFoundException("Goal not found"));
 
-            mockMvc.perform(put("/api/budgets/" + id)
+            mockMvc.perform(put("/api/goals/" + id)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"amount\":1000}"))
+                    .content("{\"name\":\"Updated\",\"targetAmount\":2000}"))
                 .andExpect(status().isNotFound());
         }
 
         @Test
         @WithMockUser
-        void shouldReturnForbiddenWhenNotOwner() throws Exception {
+        void shouldReturnForbiddenWhenNotMember() throws Exception {
             var id = UUID.randomUUID();
-            when(budgetService.updateBudget(eq(id), any()))
-                .thenThrow(new AccessDeniedException("Not the owner"));
+            when(goalService.updateGoal(eq(id), any()))
+                .thenThrow(new AccessDeniedException("Access denied"));
 
-            mockMvc.perform(put("/api/budgets/" + id)
+            mockMvc.perform(put("/api/goals/" + id)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"amount\":1000}"))
+                    .content("{\"name\":\"Updated\",\"targetAmount\":2000}"))
                 .andExpect(status().isForbidden());
         }
 
         @Test
         void shouldRejectUnauthenticated() throws Exception {
-            mockMvc.perform(put("/api/budgets/" + UUID.randomUUID())
+            mockMvc.perform(put("/api/goals/" + UUID.randomUUID())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"amount\":1000}"))
+                    .content("{\"name\":\"Updated\",\"targetAmount\":2000}"))
                 .andExpect(status().isUnauthorized());
         }
     }
 
     @Nested
-    class DeleteBudget {
+    class DeleteGoal {
 
         @Test
         @WithMockUser
-        void shouldDeleteBudget() throws Exception {
+        void shouldDeleteGoal() throws Exception {
             var id = UUID.randomUUID();
 
-            mockMvc.perform(delete("/api/budgets/" + id))
+            mockMvc.perform(delete("/api/goals/" + id))
                 .andExpect(status().isNoContent());
 
-            verify(budgetService).deleteBudget(id);
+            verify(goalService).deleteGoal(id);
         }
 
         @Test
         @WithMockUser
         void shouldReturnNotFound() throws Exception {
             var id = UUID.randomUUID();
-            org.mockito.Mockito.doThrow(new EntityNotFoundException("Budget not found"))
-                .when(budgetService).deleteBudget(id);
+            org.mockito.Mockito.doThrow(new EntityNotFoundException("Goal not found"))
+                .when(goalService).deleteGoal(id);
 
-            mockMvc.perform(delete("/api/budgets/" + id))
+            mockMvc.perform(delete("/api/goals/" + id))
                 .andExpect(status().isNotFound());
         }
 
         @Test
         @WithMockUser
-        void shouldReturnForbiddenWhenNotOwner() throws Exception {
+        void shouldReturnForbiddenWhenNotMember() throws Exception {
             var id = UUID.randomUUID();
-            org.mockito.Mockito.doThrow(new AccessDeniedException("Not the owner"))
-                .when(budgetService).deleteBudget(id);
+            org.mockito.Mockito.doThrow(new AccessDeniedException("Access denied"))
+                .when(goalService).deleteGoal(id);
 
-            mockMvc.perform(delete("/api/budgets/" + id))
+            mockMvc.perform(delete("/api/goals/" + id))
                 .andExpect(status().isForbidden());
         }
 
         @Test
         void shouldRejectUnauthenticated() throws Exception {
-            mockMvc.perform(delete("/api/budgets/" + UUID.randomUUID()))
+            mockMvc.perform(delete("/api/goals/" + UUID.randomUUID()))
                 .andExpect(status().isUnauthorized());
         }
     }

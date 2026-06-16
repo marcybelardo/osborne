@@ -1,7 +1,9 @@
 package com.osborne.api.service;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -22,6 +24,8 @@ import com.osborne.api.model.Goal;
 import com.osborne.api.model.LedgerTransaction;
 import com.osborne.api.model.User;
 import com.osborne.api.repository.AccountRepository;
+import com.osborne.api.repository.BudgetRepository;
+import com.osborne.api.repository.GoalRepository;
 import com.osborne.api.repository.LedgerTransactionRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -33,6 +37,8 @@ public class LedgerTransactionService {
 
     private final LedgerTransactionRepository ledgerTransactionRepository;
     private final AccountRepository accountRepository;
+    private final BudgetRepository budgetRepository;
+    private final GoalRepository goalRepository;
     private final UserService userService;
 
     @Transactional(readOnly = true)
@@ -72,6 +78,31 @@ public class LedgerTransactionService {
             .build();
 
         LedgerTransaction saved = ledgerTransactionRepository.save(transaction);
+
+        // Allocate to budgets
+        for (UUID budgetId : request.budgetIds()) {
+            Budget budget = budgetRepository.findById(budgetId)
+                .orElseThrow(() -> new EntityNotFoundException("Budget not found with id: " + budgetId));
+            User currentUser = getCurrentUser();
+            if (!budget.getUsers().contains(currentUser)) {
+                throw new AccessDeniedException("User does not manage budget: " + budgetId);
+            }
+            budget.getTransactions().add(saved);
+            budgetRepository.save(budget);
+        }
+
+        // Allocate to goals
+        for (UUID goalId : request.goalIds()) {
+            Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new EntityNotFoundException("Goal not found with id: " + goalId));
+            User currentUser = getCurrentUser();
+            if (!goal.getUsers().contains(currentUser)) {
+                throw new AccessDeniedException("User does not manage goal: " + goalId);
+            }
+            goal.getTransactions().add(saved);
+            goalRepository.save(goal);
+        }
+
         return toResponse(saved);
     }
 
@@ -103,6 +134,53 @@ public class LedgerTransactionService {
         }
 
         LedgerTransaction saved = ledgerTransactionRepository.save(transaction);
+
+        // Re-allocate budgets if provided
+        if (request.budgetIds() != null) {
+            // Clear current budget allocations
+            for (Budget budget : saved.getBudgets()) {
+                budget.getTransactions().remove(saved);
+                budgetRepository.save(budget);
+            }
+            saved.getBudgets().clear();
+
+            // Add new budget allocations
+            User currentUser = getCurrentUser();
+            for (UUID budgetId : request.budgetIds()) {
+                Budget budget = budgetRepository.findById(budgetId)
+                    .orElseThrow(() -> new EntityNotFoundException("Budget not found with id: " + budgetId));
+                if (!budget.getUsers().contains(currentUser)) {
+                    throw new AccessDeniedException("User does not manage budget: " + budgetId);
+                }
+                budget.getTransactions().add(saved);
+                saved.getBudgets().add(budget);
+                budgetRepository.save(budget);
+            }
+        }
+
+        // Re-allocate goals if provided
+        if (request.goalIds() != null) {
+            // Clear current goal allocations
+            for (Goal goal : saved.getGoals()) {
+                goal.getTransactions().remove(saved);
+                goalRepository.save(goal);
+            }
+            saved.getGoals().clear();
+
+            // Add new goal allocations
+            User currentUser = getCurrentUser();
+            for (UUID goalId : request.goalIds()) {
+                Goal goal = goalRepository.findById(goalId)
+                    .orElseThrow(() -> new EntityNotFoundException("Goal not found with id: " + goalId));
+                if (!goal.getUsers().contains(currentUser)) {
+                    throw new AccessDeniedException("User does not manage goal: " + goalId);
+                }
+                goal.getTransactions().add(saved);
+                saved.getGoals().add(goal);
+                goalRepository.save(goal);
+            }
+        }
+
         return toResponse(saved);
     }
 

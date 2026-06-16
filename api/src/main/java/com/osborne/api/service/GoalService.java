@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.osborne.api.dto.CreateGoalRequest;
 import com.osborne.api.dto.GoalResponse;
 import com.osborne.api.dto.UpdateGoalRequest;
+import com.osborne.api.dto.UserSummary;
 import com.osborne.api.model.Goal;
 import com.osborne.api.model.LedgerTransaction;
 import com.osborne.api.model.User;
@@ -191,8 +192,8 @@ public class GoalService {
                 .doubleValue();
         }
 
-        List<UUID> userIds = goal.getUsers().stream()
-            .map(User::getId)
+        List<UserSummary> users = goal.getUsers().stream()
+            .map(u -> new UserSummary(u.getId(), u.getDisplayName()))
             .toList();
 
         List<UUID> transactionIds = goal.getTransactions().stream()
@@ -206,7 +207,7 @@ public class GoalService {
             currentAmount,
             goal.getTargetDate(),
             progressPercent,
-            userIds,
+            users,
             transactionIds,
             goal.getCreatedAt(),
             goal.getUpdatedAt()

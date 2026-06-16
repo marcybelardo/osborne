@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.osborne.api.dto.AccountResponse;
 import com.osborne.api.dto.CreateAccountRequest;
 import com.osborne.api.dto.UpdateAccountRequest;
+import com.osborne.api.dto.UserSummary;
 import com.osborne.api.model.Account;
 import com.osborne.api.model.User;
 import com.osborne.api.repository.AccountRepository;
@@ -160,8 +161,8 @@ public class AccountService {
         BigDecimal currentBalance = account.getInitialBalance()
             .add(ledgerTransactionRepository.sumAmountByAccount(account.getId()));
 
-        List<UUID> userIds = account.getUsers().stream()
-            .map(User::getId)
+        List<UserSummary> users = account.getUsers().stream()
+            .map(u -> new UserSummary(u.getId(), u.getDisplayName()))
             .toList();
 
         return new AccountResponse(
@@ -171,7 +172,7 @@ public class AccountService {
             account.getCurrency(),
             account.getInitialBalance(),
             currentBalance,
-            userIds,
+            users,
             account.getCreatedAt(),
             account.getUpdatedAt()
         );

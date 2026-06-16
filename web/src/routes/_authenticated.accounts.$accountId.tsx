@@ -8,6 +8,11 @@ export const Route = createFileRoute('/_authenticated/accounts/$accountId')({
   component: AccountDetailLayout,
 })
 
+interface UserSummary {
+  id: string
+  displayName: string
+}
+
 interface AccountResponse {
   id: string
   name: string
@@ -15,7 +20,7 @@ interface AccountResponse {
   currency: string
   initialBalance: number
   currentBalance: number
-  userIds: string[]
+  users: UserSummary[]
   createdAt: string
   updatedAt: string
 }
@@ -188,8 +193,10 @@ function AccountDetailLayout() {
         <span>
           Updated {new Date(account.updatedAt).toLocaleDateString()}
         </span>
-        {account.userIds.length > 1 && (
-          <span>Shared with {account.userIds.length - 1} other(s)</span>
+        {account.users.length > 0 && (
+          <span title={account.users.map((u) => u.displayName).join(', ')}>
+            Shared with {account.users.map((u) => u.displayName).join(', ')}
+          </span>
         )}
       </div>
 

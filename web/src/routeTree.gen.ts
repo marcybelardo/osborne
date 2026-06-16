@@ -13,10 +13,18 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedLogoutRouteImport } from './routes/_authenticated.logout'
+import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated.goals'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as AuthenticatedBudgetsRouteImport } from './routes/_authenticated.budgets'
 import { Route as AuthenticatedAccountsRouteImport } from './routes/_authenticated.accounts'
+import { Route as AuthenticatedGoalsNewRouteImport } from './routes/_authenticated.goals.new'
+import { Route as AuthenticatedGoalsGoalIdRouteImport } from './routes/_authenticated.goals.$goalId'
+import { Route as AuthenticatedBudgetsNewRouteImport } from './routes/_authenticated.budgets.new'
+import { Route as AuthenticatedBudgetsBudgetIdRouteImport } from './routes/_authenticated.budgets.$budgetId'
 import { Route as AuthenticatedAccountsNewRouteImport } from './routes/_authenticated.accounts.new'
 import { Route as AuthenticatedAccountsAccountIdRouteImport } from './routes/_authenticated.accounts.$accountId'
+import { Route as AuthenticatedGoalsGoalIdEditRouteImport } from './routes/_authenticated.goals.$goalId.edit'
+import { Route as AuthenticatedBudgetsBudgetIdEditRouteImport } from './routes/_authenticated.budgets.$budgetId.edit'
 import { Route as AuthenticatedAccountsAccountIdEditRouteImport } from './routes/_authenticated.accounts.$accountId.edit'
 import { Route as AuthenticatedAccountsAccountIdTransactionsNewRouteImport } from './routes/_authenticated.accounts.$accountId.transactions.new'
 import { Route as AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRouteImport } from './routes/_authenticated.accounts.$accountId.transactions.$transactionId.edit'
@@ -40,9 +48,19 @@ const AuthenticatedLogoutRoute = AuthenticatedLogoutRouteImport.update({
   path: '/logout',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedGoalsRoute = AuthenticatedGoalsRouteImport.update({
+  id: '/goals',
+  path: '/goals',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedBudgetsRoute = AuthenticatedBudgetsRouteImport.update({
+  id: '/budgets',
+  path: '/budgets',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedAccountsRoute = AuthenticatedAccountsRouteImport.update({
@@ -50,6 +68,28 @@ const AuthenticatedAccountsRoute = AuthenticatedAccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedGoalsNewRoute = AuthenticatedGoalsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthenticatedGoalsRoute,
+} as any)
+const AuthenticatedGoalsGoalIdRoute =
+  AuthenticatedGoalsGoalIdRouteImport.update({
+    id: '/$goalId',
+    path: '/$goalId',
+    getParentRoute: () => AuthenticatedGoalsRoute,
+  } as any)
+const AuthenticatedBudgetsNewRoute = AuthenticatedBudgetsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthenticatedBudgetsRoute,
+} as any)
+const AuthenticatedBudgetsBudgetIdRoute =
+  AuthenticatedBudgetsBudgetIdRouteImport.update({
+    id: '/$budgetId',
+    path: '/$budgetId',
+    getParentRoute: () => AuthenticatedBudgetsRoute,
+  } as any)
 const AuthenticatedAccountsNewRoute =
   AuthenticatedAccountsNewRouteImport.update({
     id: '/new',
@@ -61,6 +101,18 @@ const AuthenticatedAccountsAccountIdRoute =
     id: '/$accountId',
     path: '/$accountId',
     getParentRoute: () => AuthenticatedAccountsRoute,
+  } as any)
+const AuthenticatedGoalsGoalIdEditRoute =
+  AuthenticatedGoalsGoalIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AuthenticatedGoalsGoalIdRoute,
+  } as any)
+const AuthenticatedBudgetsBudgetIdEditRoute =
+  AuthenticatedBudgetsBudgetIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AuthenticatedBudgetsBudgetIdRoute,
   } as any)
 const AuthenticatedAccountsAccountIdEditRoute =
   AuthenticatedAccountsAccountIdEditRouteImport.update({
@@ -87,11 +139,19 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/register': typeof RegisterRoute
   '/accounts': typeof AuthenticatedAccountsRouteWithChildren
+  '/budgets': typeof AuthenticatedBudgetsRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/goals': typeof AuthenticatedGoalsRouteWithChildren
   '/logout': typeof AuthenticatedLogoutRoute
   '/accounts/$accountId': typeof AuthenticatedAccountsAccountIdRouteWithChildren
   '/accounts/new': typeof AuthenticatedAccountsNewRoute
+  '/budgets/$budgetId': typeof AuthenticatedBudgetsBudgetIdRouteWithChildren
+  '/budgets/new': typeof AuthenticatedBudgetsNewRoute
+  '/goals/$goalId': typeof AuthenticatedGoalsGoalIdRouteWithChildren
+  '/goals/new': typeof AuthenticatedGoalsNewRoute
   '/accounts/$accountId/edit': typeof AuthenticatedAccountsAccountIdEditRoute
+  '/budgets/$budgetId/edit': typeof AuthenticatedBudgetsBudgetIdEditRoute
+  '/goals/$goalId/edit': typeof AuthenticatedGoalsGoalIdEditRoute
   '/accounts/$accountId/transactions/new': typeof AuthenticatedAccountsAccountIdTransactionsNewRoute
   '/accounts/$accountId/transactions/$transactionId/edit': typeof AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRoute
 }
@@ -99,11 +159,19 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/register': typeof RegisterRoute
   '/accounts': typeof AuthenticatedAccountsRouteWithChildren
+  '/budgets': typeof AuthenticatedBudgetsRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/goals': typeof AuthenticatedGoalsRouteWithChildren
   '/logout': typeof AuthenticatedLogoutRoute
   '/accounts/$accountId': typeof AuthenticatedAccountsAccountIdRouteWithChildren
   '/accounts/new': typeof AuthenticatedAccountsNewRoute
+  '/budgets/$budgetId': typeof AuthenticatedBudgetsBudgetIdRouteWithChildren
+  '/budgets/new': typeof AuthenticatedBudgetsNewRoute
+  '/goals/$goalId': typeof AuthenticatedGoalsGoalIdRouteWithChildren
+  '/goals/new': typeof AuthenticatedGoalsNewRoute
   '/accounts/$accountId/edit': typeof AuthenticatedAccountsAccountIdEditRoute
+  '/budgets/$budgetId/edit': typeof AuthenticatedBudgetsBudgetIdEditRoute
+  '/goals/$goalId/edit': typeof AuthenticatedGoalsGoalIdEditRoute
   '/accounts/$accountId/transactions/new': typeof AuthenticatedAccountsAccountIdTransactionsNewRoute
   '/accounts/$accountId/transactions/$transactionId/edit': typeof AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRoute
 }
@@ -113,11 +181,19 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/register': typeof RegisterRoute
   '/_authenticated/accounts': typeof AuthenticatedAccountsRouteWithChildren
+  '/_authenticated/budgets': typeof AuthenticatedBudgetsRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/goals': typeof AuthenticatedGoalsRouteWithChildren
   '/_authenticated/logout': typeof AuthenticatedLogoutRoute
   '/_authenticated/accounts/$accountId': typeof AuthenticatedAccountsAccountIdRouteWithChildren
   '/_authenticated/accounts/new': typeof AuthenticatedAccountsNewRoute
+  '/_authenticated/budgets/$budgetId': typeof AuthenticatedBudgetsBudgetIdRouteWithChildren
+  '/_authenticated/budgets/new': typeof AuthenticatedBudgetsNewRoute
+  '/_authenticated/goals/$goalId': typeof AuthenticatedGoalsGoalIdRouteWithChildren
+  '/_authenticated/goals/new': typeof AuthenticatedGoalsNewRoute
   '/_authenticated/accounts/$accountId/edit': typeof AuthenticatedAccountsAccountIdEditRoute
+  '/_authenticated/budgets/$budgetId/edit': typeof AuthenticatedBudgetsBudgetIdEditRoute
+  '/_authenticated/goals/$goalId/edit': typeof AuthenticatedGoalsGoalIdEditRoute
   '/_authenticated/accounts/$accountId/transactions/new': typeof AuthenticatedAccountsAccountIdTransactionsNewRoute
   '/_authenticated/accounts/$accountId/transactions/$transactionId/edit': typeof AuthenticatedAccountsAccountIdTransactionsTransactionIdEditRoute
 }
@@ -127,11 +203,19 @@ export interface FileRouteTypes {
     | '/'
     | '/register'
     | '/accounts'
+    | '/budgets'
     | '/dashboard'
+    | '/goals'
     | '/logout'
     | '/accounts/$accountId'
     | '/accounts/new'
+    | '/budgets/$budgetId'
+    | '/budgets/new'
+    | '/goals/$goalId'
+    | '/goals/new'
     | '/accounts/$accountId/edit'
+    | '/budgets/$budgetId/edit'
+    | '/goals/$goalId/edit'
     | '/accounts/$accountId/transactions/new'
     | '/accounts/$accountId/transactions/$transactionId/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -139,11 +223,19 @@ export interface FileRouteTypes {
     | '/'
     | '/register'
     | '/accounts'
+    | '/budgets'
     | '/dashboard'
+    | '/goals'
     | '/logout'
     | '/accounts/$accountId'
     | '/accounts/new'
+    | '/budgets/$budgetId'
+    | '/budgets/new'
+    | '/goals/$goalId'
+    | '/goals/new'
     | '/accounts/$accountId/edit'
+    | '/budgets/$budgetId/edit'
+    | '/goals/$goalId/edit'
     | '/accounts/$accountId/transactions/new'
     | '/accounts/$accountId/transactions/$transactionId/edit'
   id:
@@ -152,11 +244,19 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/register'
     | '/_authenticated/accounts'
+    | '/_authenticated/budgets'
     | '/_authenticated/dashboard'
+    | '/_authenticated/goals'
     | '/_authenticated/logout'
     | '/_authenticated/accounts/$accountId'
     | '/_authenticated/accounts/new'
+    | '/_authenticated/budgets/$budgetId'
+    | '/_authenticated/budgets/new'
+    | '/_authenticated/goals/$goalId'
+    | '/_authenticated/goals/new'
     | '/_authenticated/accounts/$accountId/edit'
+    | '/_authenticated/budgets/$budgetId/edit'
+    | '/_authenticated/goals/$goalId/edit'
     | '/_authenticated/accounts/$accountId/transactions/new'
     | '/_authenticated/accounts/$accountId/transactions/$transactionId/edit'
   fileRoutesById: FileRoutesById
@@ -197,11 +297,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLogoutRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/goals': {
+      id: '/_authenticated/goals'
+      path: '/goals'
+      fullPath: '/goals'
+      preLoaderRoute: typeof AuthenticatedGoalsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/budgets': {
+      id: '/_authenticated/budgets'
+      path: '/budgets'
+      fullPath: '/budgets'
+      preLoaderRoute: typeof AuthenticatedBudgetsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/accounts': {
@@ -210,6 +324,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/accounts'
       preLoaderRoute: typeof AuthenticatedAccountsRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/goals/new': {
+      id: '/_authenticated/goals/new'
+      path: '/new'
+      fullPath: '/goals/new'
+      preLoaderRoute: typeof AuthenticatedGoalsNewRouteImport
+      parentRoute: typeof AuthenticatedGoalsRoute
+    }
+    '/_authenticated/goals/$goalId': {
+      id: '/_authenticated/goals/$goalId'
+      path: '/$goalId'
+      fullPath: '/goals/$goalId'
+      preLoaderRoute: typeof AuthenticatedGoalsGoalIdRouteImport
+      parentRoute: typeof AuthenticatedGoalsRoute
+    }
+    '/_authenticated/budgets/new': {
+      id: '/_authenticated/budgets/new'
+      path: '/new'
+      fullPath: '/budgets/new'
+      preLoaderRoute: typeof AuthenticatedBudgetsNewRouteImport
+      parentRoute: typeof AuthenticatedBudgetsRoute
+    }
+    '/_authenticated/budgets/$budgetId': {
+      id: '/_authenticated/budgets/$budgetId'
+      path: '/$budgetId'
+      fullPath: '/budgets/$budgetId'
+      preLoaderRoute: typeof AuthenticatedBudgetsBudgetIdRouteImport
+      parentRoute: typeof AuthenticatedBudgetsRoute
     }
     '/_authenticated/accounts/new': {
       id: '/_authenticated/accounts/new'
@@ -224,6 +366,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/accounts/$accountId'
       preLoaderRoute: typeof AuthenticatedAccountsAccountIdRouteImport
       parentRoute: typeof AuthenticatedAccountsRoute
+    }
+    '/_authenticated/goals/$goalId/edit': {
+      id: '/_authenticated/goals/$goalId/edit'
+      path: '/edit'
+      fullPath: '/goals/$goalId/edit'
+      preLoaderRoute: typeof AuthenticatedGoalsGoalIdEditRouteImport
+      parentRoute: typeof AuthenticatedGoalsGoalIdRoute
+    }
+    '/_authenticated/budgets/$budgetId/edit': {
+      id: '/_authenticated/budgets/$budgetId/edit'
+      path: '/edit'
+      fullPath: '/budgets/$budgetId/edit'
+      preLoaderRoute: typeof AuthenticatedBudgetsBudgetIdEditRouteImport
+      parentRoute: typeof AuthenticatedBudgetsBudgetIdRoute
     }
     '/_authenticated/accounts/$accountId/edit': {
       id: '/_authenticated/accounts/$accountId/edit'
@@ -286,15 +442,75 @@ const AuthenticatedAccountsRouteWithChildren =
     AuthenticatedAccountsRouteChildren,
   )
 
+interface AuthenticatedBudgetsBudgetIdRouteChildren {
+  AuthenticatedBudgetsBudgetIdEditRoute: typeof AuthenticatedBudgetsBudgetIdEditRoute
+}
+
+const AuthenticatedBudgetsBudgetIdRouteChildren: AuthenticatedBudgetsBudgetIdRouteChildren =
+  {
+    AuthenticatedBudgetsBudgetIdEditRoute:
+      AuthenticatedBudgetsBudgetIdEditRoute,
+  }
+
+const AuthenticatedBudgetsBudgetIdRouteWithChildren =
+  AuthenticatedBudgetsBudgetIdRoute._addFileChildren(
+    AuthenticatedBudgetsBudgetIdRouteChildren,
+  )
+
+interface AuthenticatedBudgetsRouteChildren {
+  AuthenticatedBudgetsBudgetIdRoute: typeof AuthenticatedBudgetsBudgetIdRouteWithChildren
+  AuthenticatedBudgetsNewRoute: typeof AuthenticatedBudgetsNewRoute
+}
+
+const AuthenticatedBudgetsRouteChildren: AuthenticatedBudgetsRouteChildren = {
+  AuthenticatedBudgetsBudgetIdRoute:
+    AuthenticatedBudgetsBudgetIdRouteWithChildren,
+  AuthenticatedBudgetsNewRoute: AuthenticatedBudgetsNewRoute,
+}
+
+const AuthenticatedBudgetsRouteWithChildren =
+  AuthenticatedBudgetsRoute._addFileChildren(AuthenticatedBudgetsRouteChildren)
+
+interface AuthenticatedGoalsGoalIdRouteChildren {
+  AuthenticatedGoalsGoalIdEditRoute: typeof AuthenticatedGoalsGoalIdEditRoute
+}
+
+const AuthenticatedGoalsGoalIdRouteChildren: AuthenticatedGoalsGoalIdRouteChildren =
+  {
+    AuthenticatedGoalsGoalIdEditRoute: AuthenticatedGoalsGoalIdEditRoute,
+  }
+
+const AuthenticatedGoalsGoalIdRouteWithChildren =
+  AuthenticatedGoalsGoalIdRoute._addFileChildren(
+    AuthenticatedGoalsGoalIdRouteChildren,
+  )
+
+interface AuthenticatedGoalsRouteChildren {
+  AuthenticatedGoalsGoalIdRoute: typeof AuthenticatedGoalsGoalIdRouteWithChildren
+  AuthenticatedGoalsNewRoute: typeof AuthenticatedGoalsNewRoute
+}
+
+const AuthenticatedGoalsRouteChildren: AuthenticatedGoalsRouteChildren = {
+  AuthenticatedGoalsGoalIdRoute: AuthenticatedGoalsGoalIdRouteWithChildren,
+  AuthenticatedGoalsNewRoute: AuthenticatedGoalsNewRoute,
+}
+
+const AuthenticatedGoalsRouteWithChildren =
+  AuthenticatedGoalsRoute._addFileChildren(AuthenticatedGoalsRouteChildren)
+
 interface AuthenticatedRouteChildren {
   AuthenticatedAccountsRoute: typeof AuthenticatedAccountsRouteWithChildren
+  AuthenticatedBudgetsRoute: typeof AuthenticatedBudgetsRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRouteWithChildren
   AuthenticatedLogoutRoute: typeof AuthenticatedLogoutRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAccountsRoute: AuthenticatedAccountsRouteWithChildren,
+  AuthenticatedBudgetsRoute: AuthenticatedBudgetsRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedGoalsRoute: AuthenticatedGoalsRouteWithChildren,
   AuthenticatedLogoutRoute: AuthenticatedLogoutRoute,
 }
 

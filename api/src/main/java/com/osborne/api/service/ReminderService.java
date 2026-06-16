@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.osborne.api.dto.ReminderResponse;
 import com.osborne.api.enums.ReminderStatus;
+import com.osborne.api.enums.ReminderType;
 import com.osborne.api.model.Goal;
 import com.osborne.api.model.LedgerTransaction;
 import com.osborne.api.model.Reminder;
@@ -61,17 +62,20 @@ public class ReminderService {
     public void createBillMismatchReminder(User user, LedgerTransaction tx, BigDecimal expected) {
         Reminder reminder = Reminder.builder()
             .message(String.format("%s bill was $%.2f (expected $%.2f). Review?",
-                tx.getCategory(), tx.getAmount(), expected))
+                tx.getDescription() != null ? tx.getDescription() : "A",
+                tx.getAmount().abs(), expected))
             .user(user)
             .transaction(tx)
+            .type(ReminderType.BILL_MISMATCH)
             .build();
         reminderRepository.save(reminder);
     }
 
     public void createGoalMilestoneReminder(User user, Goal goal, double percent) {
         Reminder reminder = Reminder.builder()
-            .message(String.format("You're %.0f%% toward your %s goal!", percent, goal.getName()))
+            .message(String.format("You're %.0f toward your %s goal!", percent, goal.getName()))
             .user(user)
+            .type(ReminderType.GOAL_MILESTONE)
             .build();
         reminderRepository.save(reminder);
     }
@@ -86,6 +90,7 @@ public class ReminderService {
             reminder.getId(),
             reminder.getMessage(),
             reminder.getStatus(),
+            reminder.getType(),
             reminder.getUser().getId(),
             reminder.getTransaction() != null ? reminder.getTransaction().getId() : null,
             reminder.getCreatedAt(),

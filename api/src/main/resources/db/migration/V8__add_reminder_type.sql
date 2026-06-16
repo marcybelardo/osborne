@@ -1,0 +1,6 @@
+ALTER TABLE reminders ADD COLUMN IF NOT EXISTS type VARCHAR(32);
+
+UPDATE reminders SET type = 'BILL_MISMATCH' WHERE type IS NULL AND transaction_id IS NOT NULL;
+UPDATE reminders SET type = 'GOAL_MILESTONE' WHERE type IS NULL;
+
+ALTER TABLE reminders ALTER COLUMN type SET NOT NULL;
